@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
-import { Layers, MapPin, Navigation, Compass, Loader2, AlertCircle } from 'lucide-react';
+import { Layers, MapPin, Navigation, Compass, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
 // Tile Providers configuration list
@@ -111,16 +111,20 @@ const MapComponent = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
-  // Layer & tile references
+  // UI States
   const [activeTileId, setActiveTileId] = useState('carto-dark');
   const [isTilesLoading, setIsTilesLoading] = useState(false);
   const [hasTileError, setHasTileError] = useState(false);
-  const tileLayerRef = useRef(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Keep references to current interactive layers to clean them up on redraw
+  // References to active layers and tile layer
+  const tileLayerRef = useRef(null);
   const activeLayersRef = useRef([]);
   const routingControlRef = useRef(null);
   const myLocationMarkerRef = useRef(null);
+
+  // Click outside to close dropdown ref
+  const dropdownRef = useRef(null);
 
   // Helper to safely parse coordinate string "lat, lng" into [lat, lng] array
   const parseCoordinates = (coordString) => {
@@ -133,7 +137,18 @@ const MapComponent = ({
     return [lat, lng];
   };
 
-  // Initialize Map with OpenStreetMap Standard or Carto Dark Matter default
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -141,7 +156,7 @@ const MapComponent = ({
     const map = L.map(mapContainerRef.current, {
       center: [4.7110, -74.0721],
       zoom: 12,
-      zoomControl: false, // Turn off default zoom control to customize it nicely
+      zoomControl: false,
     });
 
     // Add custom zoom control in top right
@@ -156,13 +171,11 @@ const MapComponent = ({
 
     // Handle map clicks for selecting points
     map.on('click', (e) => {
-      // Prevent clicking map features triggers on markers
       if (e.originalEvent.defaultPrevented) return;
 
       const { lat, lng } = e.latlng;
       const coordString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-      // Resolve address through reverse geocoding via Nominatim
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`, {
         headers: {
           'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)'
@@ -179,12 +192,39 @@ const MapComponent = ({
         });
     });
 
-    // Trigger map resize to prevent sizing bugs on load
-    setTimeout(() => {
+    // 🌟 ABSOLUTE CRITICAL FIX FOR CUT-OFF MAP: 🌟
+    // Force Leaflet to invalidate size and redraw tiles properly once the container and flex-layout render is fully completed.
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
+    const timer1 = setTimeout(() => {
       map.invalidateSize();
-    }, 200);
+    }, 150);
+
+    const timer2 = setTimeout(() => {
+      map.invalidateSize();
+    }, 600);
+
+    // Listen to global window resize events too
+    const handleWindowResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleWindowResize);
 
     return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -235,11 +275,11 @@ const MapComponent = ({
     newLayer.addTo(map);
     tileLayerRef.current = newLayer;
     setActiveTileId(providerId);
-  };
 
-  // Trigger tile swaps when activeTileId state updates
-  const handleLayerChange = (providerId) => {
-    switchTileLayer(providerId);
+    // Force map invalidation on layer swaps to ensure tiles load seamlessly
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 50);
   };
 
   // Browser Geolocation API wrapper to locate User's location
@@ -394,7 +434,6 @@ const MapComponent = ({
             const distanceKm = (summary.totalDistance / 1000).toFixed(2);
             const durationMins = Math.round(summary.totalTime / 60);
 
-            // Trigger callback for Routes dashboard
             onRouteCalculated?.({
               distance: distanceKm,
               duration: durationMins,
@@ -425,12 +464,17 @@ const MapComponent = ({
       map.setView(destToDraw, 14);
     }
 
+    // Force invalidation on route changes to make sure tiles display perfectly without cutoffs
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
   }, [routes, activeRoute, selectedOrigin, selectedDestination]);
 
   // Fallback Polyline drawing helper
   const drawActivePolyline = (map, origin, dest, title) => {
     const polyline = L.polyline([origin, dest], {
-      color: '#10b981', // Emerald-500
+      color: '#10b981',
       weight: 5.5,
       opacity: 0.95
     })
@@ -441,7 +485,7 @@ const MapComponent = ({
     // Estimate direct distance
     const distMeters = map.distance(origin, dest);
     const distanceKm = (distMeters / 1000).toFixed(2);
-    const durationMins = Math.round(distMeters / 1000 * 2.5); // Average urban speed estimate
+    const durationMins = Math.round(distMeters / 1000 * 2.5);
 
     onRouteCalculated?.({
       distance: distanceKm,
@@ -455,6 +499,9 @@ const MapComponent = ({
     const map = mapInstanceRef.current;
     if (!map) return;
     map.setView([4.7110, -74.0721], 12, { animate: true });
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
   };
 
   const activeProvider = TILE_PROVIDERS.find(p => p.id === activeTileId);
@@ -469,43 +516,52 @@ const MapComponent = ({
       {isTilesLoading && (
         <div className="absolute top-4 right-14 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-v-dark-soft/90 backdrop-blur-md border border-v-dark-border rounded-xl shadow-xl">
           <Loader2 size={13} className="text-primary animate-spin" />
-          <span className="text-[10px] font-semibold text-v-white">Cargando mapa...</span>
+          <span className="text-[10px] font-semibold text-v-white">Cargando...</span>
         </div>
       )}
 
-      {/* Floating Panel: Custom Google Maps / Mapbox style Layer Selector */}
-      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border p-3 rounded-2xl shadow-2xl max-w-[190px]">
-        <div className="space-y-1.5 text-left">
-          <label className="text-[10px] font-bold text-v-gray uppercase tracking-wider flex items-center gap-1.5">
-            <Layers size={12} className="text-primary" /> Estilo del Mapa
-          </label>
-          <div className="flex flex-col gap-1">
-            {TILE_PROVIDERS.map(provider => (
-              <button
-                key={provider.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLayerChange(provider.id);
-                }}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-left text-xs font-medium transition-all flex items-center justify-between cursor-pointer",
-                  activeTileId === provider.id
-                    ? "bg-primary/20 text-primary border border-primary/40 font-semibold"
-                    : "text-v-gray hover:text-v-white hover:bg-v-dark/40 border border-transparent"
-                )}
-              >
-                <span>{provider.label}</span>
-                {activeTileId === provider.id && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                )}
-              </button>
-            ))}
+      {/* Premium Floating Dropdown: Style Selector */}
+      <div ref={dropdownRef} className="absolute top-4 left-4 z-20">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center gap-2 px-3 py-2 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-xl shadow-2xl text-xs font-semibold text-v-white hover:border-primary/40 transition-all cursor-pointer hover:scale-105 active:scale-95"
+        >
+          <Layers size={14} className="text-primary" />
+          <span>Estilo: {activeProvider?.label}</span>
+          {isDropdownOpen ? <ChevronUp size={13} className="text-v-gray" /> : <ChevronDown size={13} className="text-v-gray" />}
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute left-0 mt-1.5 w-44 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="p-1 flex flex-col gap-0.5">
+              {TILE_PROVIDERS.map(provider => (
+                <button
+                  key={provider.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    switchTileLayer(provider.id);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "w-full px-3 py-2 rounded-lg text-left text-xs font-medium transition-all flex items-center justify-between cursor-pointer",
+                    activeTileId === provider.id
+                      ? "bg-primary/20 text-primary font-bold"
+                      : "text-v-gray hover:text-v-white hover:bg-v-dark/50"
+                  )}
+                >
+                  <span>{provider.name.replace(' Standard', '').replace(' World Imagery', '')}</span>
+                  {activeTileId === provider.id && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Active Layer Legend Indicator (Bottom-Center) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-full shadow-lg flex items-center gap-2 pointer-events-none text-xs">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-full shadow-lg flex items-center gap-2 pointer-events-none text-[10px] sm:text-xs">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
         <span className="text-v-gray">Capa:</span>
         <span className="font-bold text-v-white">{activeProvider?.name}</span>
