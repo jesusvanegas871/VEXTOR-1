@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, X, Loader2 } from 'lucide-react';
-import { MAPBOX_TOKEN } from './config';
 import { cn } from '../../../utils/cn';
 
-const MapboxAutocomplete = ({
+const NominatimAutocomplete = ({
   placeholder = 'Buscar dirección...',
   value = '',
   onChange,
@@ -19,7 +18,7 @@ const MapboxAutocomplete = ({
   const wrapperRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // Sync internal state when external value changes
+  // Sync internal query state with external value changes
   useEffect(() => {
     setQuery(value);
   }, [value]);
@@ -35,7 +34,7 @@ const MapboxAutocomplete = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch suggestions with debouncing
+  // Fetch suggestions using OpenStreetMap Nominatim Free API
   const fetchSuggestions = (searchQuery) => {
     if (!searchQuery || searchQuery.trim().length < 3) {
       setSuggestions([]);
@@ -44,25 +43,40 @@ const MapboxAutocomplete = ({
     }
 
     setIsLoading(true);
-    const bogotaCoords = '-74.0721,4.7110';
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      searchQuery
-    )}.json?access_token=${MAPBOX_TOKEN}&country=CO&proximity=${bogotaCoords}&autocomplete=true&limit=5`;
 
-    fetch(url)
+    // Filter to Colombia (countrycodes=co) and focus on Bogotá / surrounding area using Nominatim viewbox parameter
+    const bogotaViewbox = '-74.25,4.85,-73.95,4.45'; // West, North, East, South bounding box of Bogotá
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      searchQuery
+    )}&countrycodes=co&viewbox=${bogotaViewbox}&bounded=0&addressdetails=1&limit=5`;
+
+    fetch(url, {
+      headers: {
+        'Accept-Language': 'es',
+        'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)' // Good practice for Nominatim API usage
+      }
+    })
       .then((res) => {
-        if (!res.ok) throw new Error('Error de red al consultar Mapbox Geocoding');
+        if (!res.ok) throw new Error('Error al consultar Nominatim API');
         return res.json();
       })
       .then((data) => {
-        if (data && data.features) {
-          setSuggestions(data.features);
+        if (Array.isArray(data)) {
+          // Normalize structure to mimic what we expect in the app
+          const formatted = data.map((item) => ({
+            id: item.place_id,
+            display_name: item.display_name,
+            name: item.name || item.display_name.split(',')[0],
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+          }));
+          setSuggestions(formatted);
         } else {
           setSuggestions([]);
         }
       })
       .catch((err) => {
-        console.error('Error fetching Mapbox Geocoding suggestions:', err);
+        console.error('Error fetching Nominatim suggestions:', err);
       })
       .finally(() => {
         setIsLoading(false);
@@ -82,13 +96,12 @@ const MapboxAutocomplete = ({
 
     searchTimeoutRef.current = setTimeout(() => {
       fetchSuggestions(val);
-    }, 400); // 400ms debounce
+    }, 500); // 500ms debounce to comply with Nominatim usage guidelines
   };
 
-  const handleSelectSuggestion = (feature) => {
-    const address = feature.place_name;
-    const [lng, lat] = feature.center;
-    const coordString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  const handleSelectSuggestion = (item) => {
+    const address = item.display_name;
+    const coordString = `${item.lat.toFixed(6)}, ${item.lon.toFixed(6)}`;
 
     setQuery(address);
     setSuggestions([]);
@@ -195,10 +208,10 @@ const MapboxAutocomplete = ({
               />
               <div className="space-y-0.5 overflow-hidden">
                 <span className="font-semibold block text-v-white truncate">
-                  {item.text}
+                  {item.name}
                 </span>
                 <span className="text-[10px] text-v-gray block truncate">
-                  {item.place_name}
+                  {item.display_name}
                 </span>
               </div>
             </li>
@@ -209,4 +222,4 @@ const MapboxAutocomplete = ({
   );
 };
 
-export default MapboxAutocomplete;
+export default NominatimAutocomplete;

@@ -28,8 +28,7 @@ import { routeService } from '../../services/routeService';
 import { driverService } from '../../services/driverService';
 import { vehicleService } from '../../services/vehicleService';
 import MapComponent from './components/MapComponent';
-import MapboxAutocomplete from './components/MapboxAutocomplete';
-import { MAPBOX_TOKEN } from './components/config';
+import NominatimAutocomplete from './components/NominatimAutocomplete';
 import { cn } from '../../utils/cn';
 
 const ROUTE_STATUSES = [
@@ -63,7 +62,7 @@ const Routes = () => {
   const [origenSearch, setOrigenSearch] = useState('');
   const [destinoSearch, setDestinoSearch] = useState('');
 
-  // Live route metrics from Mapbox Directions
+  // Live route metrics from Nominatim / OSRM
   const [routeInfo, setRouteInfo] = useState(null);
 
   // Form State
@@ -146,34 +145,30 @@ const Routes = () => {
       const destParts = destinoCoords.split(',');
       if (origParts.length !== 2 || destParts.length !== 2) return;
 
-      const origLng = origParts[1].trim();
       const origLat = origParts[0].trim();
-      const destLng = destParts[1].trim();
+      const origLng = origParts[1].trim();
       const destLat = destParts[0].trim();
+      const destLng = destParts[1].trim();
 
       const [origRes, destRes] = await Promise.all([
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${origLng},${origLat}.json?access_token=${MAPBOX_TOKEN}`),
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${destLng},${destLat}.json?access_token=${MAPBOX_TOKEN}`)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${origLat}&lon=${origLng}&accept-language=es`, {
+          headers: { 'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)' }
+        }),
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${destLat}&lon=${destLng}&accept-language=es`, {
+          headers: { 'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)' }
+        })
       ]);
 
       if (origRes.ok) {
         const oData = await origRes.json();
-        if (oData.features && oData.features.length > 0) {
-          setOrigenSearch(oData.features[0].place_name);
-        } else {
-          setOrigenSearch(origenCoords);
-        }
+        setOrigenSearch(oData?.display_name || origenCoords);
       } else {
         setOrigenSearch(origenCoords);
       }
 
       if (destRes.ok) {
         const dData = await destRes.json();
-        if (dData.features && dData.features.length > 0) {
-          setDestinoSearch(dData.features[0].place_name);
-        } else {
-          setDestinoSearch(destinoCoords);
-        }
+        setDestinoSearch(dData?.display_name || destinoCoords);
       } else {
         setDestinoSearch(destinoCoords);
       }
@@ -422,9 +417,9 @@ const Routes = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-v-dark-soft p-6 rounded-2xl border border-v-dark-border">
         <div>
           <h2 className="text-2xl font-bold text-v-white flex items-center gap-2">
-            <RouteIcon className="text-primary" size={24} /> Planificación Avanzada de Rutas (Mapbox & TomTom)
+            <RouteIcon className="text-primary" size={24} /> Planificación Avanzada de Rutas
           </h2>
-          <p className="text-v-gray text-sm mt-0.5">Gestione y trace recorridos optimizados mediante Mapbox Directions y flujo de tránsito real TomTom.</p>
+          <p className="text-v-gray text-sm mt-0.5">Gestione y trace recorridos optimizados mediante mapas interactivos y navegación de calles reales.</p>
         </div>
       </div>
 
@@ -455,17 +450,17 @@ const Routes = () => {
               >
                 <div className="flex items-center gap-3.5 w-full sm:w-auto">
                   <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0 text-primary">
-                    <Compass className="animate-spin-slow" size={20} />
+                    <Compass className="animate-spin-slow text-primary" size={20} />
                   </div>
                   <div className="space-y-0.5 overflow-hidden">
                     <span className="text-xs font-bold text-v-gray uppercase tracking-wider block">Indicadores de Trayecto Real</span>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-v-white text-sm font-semibold truncate max-w-[200px]" title={routeInfo.originAddress}>
-                        {routeInfo.originAddress.split(',')[0]}
+                      <span className="text-v-white text-sm font-semibold truncate max-w-[200px]" title={origenSearch || 'Origen'}>
+                        {(origenSearch || 'Origen').split(',')[0]}
                       </span>
                       <ArrowRight size={14} className="text-v-gray shrink-0" />
-                      <span className="text-v-white text-sm font-semibold truncate max-w-[200px]" title={routeInfo.destinationAddress}>
-                        {routeInfo.destinationAddress.split(',')[0]}
+                      <span className="text-v-white text-sm font-semibold truncate max-w-[200px]" title={destinoSearch || 'Destino'}>
+                        {(destinoSearch || 'Destino').split(',')[0]}
                       </span>
                     </div>
                   </div>
@@ -573,7 +568,7 @@ const Routes = () => {
                 <label className="text-xs font-medium text-v-gray flex items-center gap-1.5">
                   <MapPin size={13} className="text-emerald-500" /> Dirección de Origen
                 </label>
-                <MapboxAutocomplete
+                <NominatimAutocomplete
                   placeholder="Escribe el origen (ej: Portal Norte)..."
                   value={origenSearch}
                   onChange={(val) => setOrigenSearch(val)}
@@ -597,7 +592,7 @@ const Routes = () => {
                 <label className="text-xs font-medium text-v-gray flex items-center gap-1.5">
                   <MapPin size={13} className="text-red-500" /> Dirección de Destino
                 </label>
-                <MapboxAutocomplete
+                <NominatimAutocomplete
                   placeholder="Escribe el destino (ej: Aeropuerto El Dorado)..."
                   value={destinoSearch}
                   onChange={(val) => setDestinoSearch(val)}

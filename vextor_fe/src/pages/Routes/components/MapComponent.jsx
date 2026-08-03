@@ -1,27 +1,103 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { Layers, Activity, Eye, EyeOff, Navigation, Maximize2, RefreshCw } from 'lucide-react';
-import { MAPBOX_TOKEN, TOMTOM_KEY } from './config';
+import L from 'leaflet';
+import 'leaflet-routing-machine';
+import { Layers, MapPin, Navigation, Compass, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
-// Set access token
-mapboxgl.accessToken = MAPBOX_TOKEN;
-
-// Colors for inactive routes to make them distinctive but subtle
-const DISTINCT_COLORS = [
-  '#3b82f6', // Blue
-  '#f59e0b', // Amber
-  '#8b5cf6', // Violet
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f97316', // Orange
+// Tile Providers configuration list
+const TILE_PROVIDERS = [
+  {
+    id: 'carto-dark',
+    name: 'Carto Dark Matter',
+    label: 'Oscuro',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  },
+  {
+    id: 'osm',
+    name: 'OpenStreetMap Standard',
+    label: 'Calles',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+    subdomains: 'abc',
+    maxZoom: 19
+  },
+  {
+    id: 'carto-positron',
+    name: 'Carto Positron',
+    label: 'Claro',
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  },
+  {
+    id: 'opentopo',
+    name: 'OpenTopoMap',
+    label: 'Relieve',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenTopoMap contributors &copy; OpenStreetMap',
+    subdomains: 'abc',
+    maxZoom: 17
+  },
+  {
+    id: 'esri-satellite',
+    name: 'Esri World Imagery',
+    label: 'Satélite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, GeoEye',
+    subdomains: [],
+    maxZoom: 18
+  }
 ];
 
-const MAP_STYLES = [
-  { id: 'dark', label: 'Oscuro', url: 'mapbox://styles/mapbox/dark-v11' },
-  { id: 'streets', label: 'Calles', url: 'mapbox://styles/mapbox/streets-v12' },
-  { id: 'satellite', label: 'Satélite', url: 'mapbox://styles/mapbox/satellite-v9' },
-  { id: 'outdoors', label: 'Relieve', url: 'mapbox://styles/mapbox/outdoors-v12' }
+// Custom Marker Icons using pure Tailwind to avoid asset path errors in Vite
+const createMarkerIcon = (type, label = '') => {
+  const colorClass = type === 'origin' ? 'bg-emerald-500' : 'bg-red-500';
+  return L.divIcon({
+    html: `<div class="relative flex items-center justify-center w-6 h-6">
+             <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${colorClass} opacity-40"></span>
+             <div class="relative flex items-center justify-center w-5 h-5 rounded-full ${colorClass} border-2 border-white shadow-lg text-white font-bold text-[9px]">
+               ${label}
+             </div>
+           </div>`,
+    className: 'custom-leaflet-marker-div',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
+const createOtherMarkerIcon = (colorClass) => {
+  return L.divIcon({
+    html: `<div class="w-3.5 h-3.5 rounded-full ${colorClass} border border-white shadow-md"></div>`,
+    className: 'other-leaflet-marker-div',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
+};
+
+const createMyLocationIcon = () => {
+  return L.divIcon({
+    html: `<div class="relative flex items-center justify-center w-6 h-6">
+             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50"></span>
+             <div class="relative w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-lg"></div>
+           </div>`,
+    className: 'mylocation-leaflet-marker-div',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
+// Colors for other routes to make them distinctive
+const DISTINCT_COLORS = [
+  { stroke: '#3b82f6', bg: 'bg-blue-500' },     // Blue
+  { stroke: '#f59e0b', bg: 'bg-amber-500' },    // Amber
+  { stroke: '#8b5cf6', bg: 'bg-violet-500' },   // Violet
+  { stroke: '#ec4899', bg: 'bg-pink-500' },     // Pink
+  { stroke: '#06b6d4', bg: 'bg-cyan-500' },     // Cyan
+  { stroke: '#f97316', bg: 'bg-orange-500' },   // Orange
 ];
 
 const MapComponent = ({
@@ -30,90 +106,83 @@ const MapComponent = ({
   selectedOrigin = '',
   selectedDestination = '',
   onSelectPoints,
-  onRouteCalculated, // Callback to update parent with distance, time and addresses
+  onRouteCalculated,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
-  // States for user interactive controls
-  const [currentStyle, setCurrentStyle] = useState('dark');
-  const [trafficEnabled, setTrafficEnabled] = useState(false);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  // Layer & tile references
+  const [activeTileId, setActiveTileId] = useState('carto-dark');
+  const [isTilesLoading, setIsTilesLoading] = useState(false);
+  const [hasTileError, setHasTileError] = useState(false);
+  const tileLayerRef = useRef(null);
 
-  // Keep references to DOM elements and map objects to clean up correctly
-  const markersRef = useRef([]);
-  const activeRouteMarkersRef = useRef({ origin: null, destination: null });
+  // Keep references to current interactive layers to clean them up on redraw
+  const activeLayersRef = useRef([]);
+  const routingControlRef = useRef(null);
+  const myLocationMarkerRef = useRef(null);
 
-  // Safe coordinate parser -> returns [longitude, latitude] for Mapbox
-  const parseCoordinatesToLngLat = (coordString) => {
+  // Helper to safely parse coordinate string "lat, lng" into [lat, lng] array
+  const parseCoordinates = (coordString) => {
     if (!coordString) return null;
     const parts = coordString.split(',');
     if (parts.length !== 2) return null;
     const lat = parseFloat(parts[0]);
     const lng = parseFloat(parts[1]);
     if (isNaN(lat) || isNaN(lng)) return null;
-    return [lng, lat];
+    return [lat, lng];
   };
 
-  // Initialize Map
+  // Initialize Map with OpenStreetMap Standard or Carto Dark Matter default
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    const bogotaLngLat = [-74.0721, 4.7110];
-
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: MAP_STYLES.find(s => s.id === currentStyle)?.url || MAP_STYLES[0].url,
-      center: bogotaLngLat,
+    // Centered in Bogotá: Lat 4.7110, Lng -74.0721, zoom 12
+    const map = L.map(mapContainerRef.current, {
+      center: [4.7110, -74.0721],
       zoom: 12,
-      pitchWithRotate: false,
-      dragRotate: false
+      zoomControl: false, // Turn off default zoom control to customize it nicely
     });
 
-    // Add navigation controls (Zoom, etc)
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    // Add custom zoom control in top right
+    L.control.zoom({
+      position: 'topright'
+    }).addTo(map);
 
     mapInstanceRef.current = map;
 
-    map.on('load', () => {
-      setMapLoaded(true);
-      // Ensure canvas adjusts perfectly to custom responsive sizes and wrapper mounts
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.resize();
-        }
-      }, 150);
-    });
+    // Load initial tile layer (Carto Dark Matter is a gorgeous theme)
+    switchTileLayer('carto-dark');
 
-    // Map click handler for selecting points
-    map.on('click', async (e) => {
-      // Avoid triggering when clicking map controls, layers or markers
+    // Handle map clicks for selecting points
+    map.on('click', (e) => {
+      // Prevent clicking map features triggers on markers
       if (e.originalEvent.defaultPrevented) return;
 
-      const { lng, lat } = e.lngLat;
+      const { lat, lng } = e.latlng;
       const coordString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-      // Perform Reverse Geocoding to get address instantly
-      let addressName = `Ubicación en ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      try {
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.features && data.features.length > 0) {
-            addressName = data.features[0].place_name;
-          }
+      // Resolve address through reverse geocoding via Nominatim
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`, {
+        headers: {
+          'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)'
         }
-      } catch (err) {
-        console.error('Reverse geocoding error on click:', err);
-      }
-
-      onSelectPoints({
-        coordinates: coordString,
-        address: addressName
-      });
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const address = data?.display_name || `Ubicación en ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          onSelectPoints?.({ coordinates: coordString, address });
+        })
+        .catch((err) => {
+          console.warn('Reverse geocoding failed, falling back to raw coordinates:', err);
+          onSelectPoints?.({ coordinates: coordString, address: `Coordenadas: ${coordString}` });
+        });
     });
+
+    // Trigger map resize to prevent sizing bugs on load
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
 
     return () => {
       if (mapInstanceRef.current) {
@@ -123,524 +192,354 @@ const MapComponent = ({
     };
   }, []);
 
-  // Update Map Style
-  useEffect(() => {
+  // Set tile loading states and handle tile layer swaps
+  const switchTileLayer = (providerId) => {
     const map = mapInstanceRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
 
-    const styleUrl = MAP_STYLES.find(s => s.id === currentStyle)?.url;
-    if (styleUrl) {
-      map.setStyle(styleUrl);
+    const provider = TILE_PROVIDERS.find(p => p.id === providerId) || TILE_PROVIDERS[0];
 
-      // Re-apply Traffic layer if it was enabled, after the style loads
-      map.once('style.load', () => {
-        if (trafficEnabled) {
-          addTrafficLayer(map);
-        }
-        // Force redraw route and markers after style changes
-        triggerMapRedraw();
-        // Recalculate container bounding dimensions
-        map.resize();
-      });
+    // Remove existing tile layer
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
     }
-  }, [currentStyle]);
 
-  // Handle Traffic Toggle
-  useEffect(() => {
+    setHasTileError(false);
+    setIsTilesLoading(true);
+
+    const newLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      subdomains: provider.subdomains,
+      maxZoom: provider.maxZoom,
+    });
+
+    // Tile Load Listeners for a modern UX loading state indicator
+    newLayer.on('loading', () => {
+      setIsTilesLoading(true);
+    });
+    newLayer.on('load', () => {
+      setIsTilesLoading(false);
+    });
+    newLayer.on('tileerror', (error) => {
+      console.error(`Tile layer load error for ${provider.name}:`, error);
+      setIsTilesLoading(false);
+      setHasTileError(true);
+
+      // Robust Auto Fallback to OSM
+      if (providerId !== 'osm') {
+        console.warn('Falling back to OpenStreetMap Standard layer automatically...');
+        switchTileLayer('osm');
+      }
+    });
+
+    newLayer.addTo(map);
+    tileLayerRef.current = newLayer;
+    setActiveTileId(providerId);
+  };
+
+  // Trigger tile swaps when activeTileId state updates
+  const handleLayerChange = (providerId) => {
+    switchTileLayer(providerId);
+  };
+
+  // Browser Geolocation API wrapper to locate User's location
+  const handleMyLocation = () => {
     const map = mapInstanceRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
 
-    if (trafficEnabled) {
-      addTrafficLayer(map);
-    } else {
-      removeTrafficLayer(map);
-    }
-  }, [trafficEnabled, mapLoaded]);
-
-  const addTrafficLayer = (map) => {
-    if (!TOMTOM_KEY) {
-      console.warn('TomTom API Key missing. Cannot load traffic layer.');
+    if (!navigator.geolocation) {
+      alert('La geolocalización no es compatible con su navegador.');
       return;
     }
 
-    try {
-      // 1. Add Source for Flow Tiles
-      if (!map.getSource('tomtom-traffic-flow')) {
-        map.addSource('tomtom-traffic-flow', {
-          type: 'raster',
-          tiles: [
-            `https://api.tomtom.com/traffic/map/4/tile/flow/absolute/{z}/{x}/{y}.png?key=${TOMTOM_KEY}`
-          ],
-          tileSize: 256,
-          attribution: '© TomTom Traffic'
-        });
-      }
+    setIsTilesLoading(true);
 
-      // 2. Add Layer for Flow Tiles
-      if (!map.getLayer('tomtom-traffic-flow-layer')) {
-        map.addLayer({
-          id: 'tomtom-traffic-flow-layer',
-          type: 'raster',
-          source: 'tomtom-traffic-flow',
-          paint: { 'raster-opacity': 0.75 }
-        });
-      }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsTilesLoading(false);
+        const { latitude, longitude } = position.coords;
+        const userLatLng = [latitude, longitude];
 
-      // 3. Add Source for Incidents Tiles
-      if (!map.getSource('tomtom-traffic-incidents')) {
-        map.addSource('tomtom-traffic-incidents', {
-          type: 'raster',
-          tiles: [
-            `https://api.tomtom.com/traffic/map/4/tile/incidents/s3/{z}/{x}/{y}.png?key=${TOMTOM_KEY}`
-          ],
-          tileSize: 256,
-          attribution: '© TomTom Incidents'
-        });
-      }
+        // Place beautiful pulsing dot marker
+        if (myLocationMarkerRef.current) {
+          map.removeLayer(myLocationMarkerRef.current);
+        }
 
-      // 4. Add Layer for Incidents Tiles
-      if (!map.getLayer('tomtom-traffic-incidents-layer')) {
-        map.addLayer({
-          id: 'tomtom-traffic-incidents-layer',
-          type: 'raster',
-          source: 'tomtom-traffic-incidents',
-          paint: { 'raster-opacity': 0.85 }
-        });
-      }
-    } catch (err) {
-      console.error('Error adding TomTom Traffic layers:', err);
-    }
+        const marker = L.marker(userLatLng, { icon: createMyLocationIcon() })
+          .bindPopup('<b>Mi ubicación actual</b>')
+          .addTo(map);
+
+        myLocationMarkerRef.current = marker;
+        map.setView(userLatLng, 15, { animate: true, duration: 1 });
+      },
+      (error) => {
+        setIsTilesLoading(false);
+        console.warn('Geolocation error:', error);
+        alert('No se pudo determinar su ubicación actual. Asegúrese de otorgar permisos de ubicación.');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   };
 
-  const removeTrafficLayer = (map) => {
-    try {
-      if (map.getLayer('tomtom-traffic-flow-layer')) {
-        map.removeLayer('tomtom-traffic-flow-layer');
-      }
-      if (map.getSource('tomtom-traffic-flow')) {
-        map.removeSource('tomtom-traffic-flow');
-      }
-      if (map.getLayer('tomtom-traffic-incidents-layer')) {
-        map.removeLayer('tomtom-traffic-incidents-layer');
-      }
-      if (map.getSource('tomtom-traffic-incidents')) {
-        map.removeSource('tomtom-traffic-incidents');
-      }
-    } catch (err) {
-      console.error('Error removing TomTom Traffic layers:', err);
-    }
-  };
-
-  // Helper to force a state refresh for drawing routes
-  const [redrawCounter, setRedrawCounter] = useState(0);
-  const triggerMapRedraw = () => setRedrawCounter(prev => prev + 1);
-
-  // Redraw Markers, Lines, and Active Route
+  // Update map state and render routes/markers
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
 
-    // 1. Clear Inactive Markers
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    // 1. Clear previous layers & routing controls
+    activeLayersRef.current.forEach(layer => map.removeLayer(layer));
+    activeLayersRef.current = [];
 
-    // 2. Clear Active Route Markers
-    if (activeRouteMarkersRef.current.origin) {
-      activeRouteMarkersRef.current.origin.remove();
-      activeRouteMarkersRef.current.origin = null;
-    }
-    if (activeRouteMarkersRef.current.destination) {
-      activeRouteMarkersRef.current.destination.remove();
-      activeRouteMarkersRef.current.destination = null;
+    if (routingControlRef.current) {
+      map.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
     }
 
-    // 3. Clear existing active route layers and sources
-    if (map.getLayer('active-route-line')) map.removeLayer('active-route-line');
-    if (map.getSource('active-route')) map.removeSource('active-route');
+    // Preserve the User's Location dot if it exists
+    if (myLocationMarkerRef.current) {
+      myLocationMarkerRef.current.addTo(map);
+    }
 
-    // 4. Clear all previous individual route layers & sources
-    routes.forEach((r) => {
-      const layerId = `route-line-${r.id_ruta}`;
-      const sourceId = `route-source-${r.id_ruta}`;
-      if (map.getLayer(layerId)) map.removeLayer(layerId);
-      if (map.getSource(sourceId)) map.removeSource(sourceId);
-    });
-
-    // 5. Draw Inactive Routes in the background
+    // 2. Draw Other (Non-Active) Routes in background
     routes.forEach((route, index) => {
       if (activeRoute && route.id_ruta === activeRoute.id_ruta) return;
 
-      const origLngLat = parseCoordinatesToLngLat(route.origen);
-      const destLngLat = parseCoordinatesToLngLat(route.destino);
+      const originCoords = parseCoordinates(route.origen);
+      const destCoords = parseCoordinates(route.destino);
 
-      if (origLngLat && destLngLat) {
-        const color = DISTINCT_COLORS[index % DISTINCT_COLORS.length];
+      if (originCoords && destCoords) {
+        const colorSet = DISTINCT_COLORS[index % DISTINCT_COLORS.length];
 
-        // Draw small dot markers
-        const startEl = document.createElement('div');
-        startEl.className = 'w-3 h-3 rounded-full border border-white shadow-md cursor-pointer transition-transform hover:scale-125';
-        startEl.style.backgroundColor = color;
-
-        const endEl = document.createElement('div');
-        endEl.className = 'w-3 h-3 rounded-full border border-white shadow-md cursor-pointer transition-transform hover:scale-125';
-        endEl.style.backgroundColor = color;
-
-        const popup = new mapboxgl.Popup({ offset: 10 })
-          .setHTML(`<div class="p-1.5 text-xs text-v-white font-sans">
-                      <b class="text-primary font-mono text-xs block">${route.codigo_ruta}</b>
-                      <span class="font-semibold block mt-0.5">${route.nombre_ruta}</span>
-                    </div>`);
-
-        const startMarker = new mapboxgl.Marker({ element: startEl })
-          .setLngLat(origLngLat)
-          .setPopup(popup)
+        // Draw markers
+        const startMarker = L.marker(originCoords, { icon: createOtherMarkerIcon(colorSet.bg) })
+          .bindPopup(`<b>${route.codigo_ruta} (Inicio)</b><br>${route.nombre_ruta}`)
+          .addTo(map);
+        const endMarker = L.marker(destCoords, { icon: createOtherMarkerIcon(colorSet.bg) })
+          .bindPopup(`<b>${route.codigo_ruta} (Fin)</b><br>${route.nombre_ruta}`)
           .addTo(map);
 
-        const endMarker = new mapboxgl.Marker({ element: endEl })
-          .setLngLat(destLngLat)
-          .setPopup(popup)
+        // Draw simple Polyline for other background routes
+        const polyline = L.polyline([originCoords, destCoords], {
+          color: colorSet.stroke,
+          weight: 3.5,
+          opacity: 0.55,
+          dashArray: '4, 8'
+        })
+          .bindPopup(`<b>Ruta: ${route.codigo_ruta}</b><br>${route.nombre_ruta}`)
           .addTo(map);
 
-        markersRef.current.push(startMarker, endMarker);
-
-        // Draw dotted polyline connecting them
-        const sourceId = `route-source-${route.id_ruta}`;
-        const layerId = `route-line-${route.id_ruta}`;
-
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates: [origLngLat, destLngLat]
-            }
-          }
-        });
-
-        map.addLayer({
-          id: layerId,
-          type: 'line',
-          source: sourceId,
-          layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: {
-            'line-color': color,
-            'line-width': 2.5,
-            'line-opacity': 0.45,
-            'line-dasharray': [3, 3]
-          }
-        });
+        activeLayersRef.current.push(startMarker, endMarker, polyline);
       }
     });
 
-    // 6. Draw Active Route or Clicked Draft Route
-    let activeOrigin = null;
-    let activeDest = null;
-    let activeRouteLabel = 'Nueva Ruta';
+    // 3. Draw Active Route or Temporary Clicked Points
+    let originToDraw = null;
+    let destToDraw = null;
+    let activeRouteName = 'Nueva Ruta';
 
     if (activeRoute) {
-      activeOrigin = parseCoordinatesToLngLat(activeRoute.origen);
-      activeDest = parseCoordinatesToLngLat(activeRoute.destino);
-      activeRouteLabel = activeRoute.nombre_ruta || activeRoute.codigo_ruta;
+      originToDraw = parseCoordinates(activeRoute.origen);
+      destToDraw = parseCoordinates(activeRoute.destino);
+      activeRouteName = activeRoute.nombre_ruta || activeRoute.codigo_ruta || 'Ruta Seleccionada';
     } else {
-      activeOrigin = parseCoordinatesToLngLat(selectedOrigin);
-      activeDest = parseCoordinatesToLngLat(selectedDestination);
+      originToDraw = parseCoordinates(selectedOrigin);
+      destToDraw = parseCoordinates(selectedDestination);
     }
 
-    // Origin Marker (Green / A)
-    if (activeOrigin) {
-      const origEl = document.createElement('div');
-      origEl.className = 'relative flex items-center justify-center w-7 h-7';
-      origEl.innerHTML = `
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-30"></span>
-        <div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 border-2 border-white shadow-xl text-white font-bold text-[10px]">
-          A
-        </div>
-      `;
-
-      const origMarker = new mapboxgl.Marker({ element: origEl })
-        .setLngLat(activeOrigin)
-        .setPopup(new mapboxgl.Popup({ offset: 12 }).setHTML(`
-          <div class="p-1.5 text-xs font-sans text-v-white">
-            <b class="text-emerald-400 block font-bold">Origen (Punto A)</b>
-            <span class="text-[11px] text-v-gray block mt-0.5">${activeRouteLabel}</span>
-          </div>
-        `))
+    if (originToDraw) {
+      const origMarker = L.marker(originToDraw, { icon: createMarkerIcon('origin', 'A') })
+        .bindPopup(`<b>Origen (A)</b><br>${activeRouteName}`)
         .addTo(map);
-
-      activeRouteMarkersRef.current.origin = origMarker;
+      activeLayersRef.current.push(origMarker);
     }
 
-    // Destination Marker (Red / B)
-    if (activeDest) {
-      const destEl = document.createElement('div');
-      destEl.className = 'relative flex items-center justify-center w-7 h-7';
-      destEl.innerHTML = `
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-30"></span>
-        <div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-red-500 border-2 border-white shadow-xl text-white font-bold text-[10px]">
-          B
-        </div>
-      `;
-
-      const destMarker = new mapboxgl.Marker({ element: destEl })
-        .setLngLat(activeDest)
-        .setPopup(new mapboxgl.Popup({ offset: 12 }).setHTML(`
-          <div class="p-1.5 text-xs font-sans text-v-white">
-            <b class="text-red-400 block font-bold">Destino (Punto B)</b>
-            <span class="text-[11px] text-v-gray block mt-0.5">${activeRouteLabel}</span>
-          </div>
-        `))
+    if (destToDraw) {
+      const destMarker = L.marker(destToDraw, { icon: createMarkerIcon('destination', 'B') })
+        .bindPopup(`<b>Destino (B)</b><br>${activeRouteName}`)
         .addTo(map);
-
-      activeRouteMarkersRef.current.destination = destMarker;
+      activeLayersRef.current.push(destMarker);
     }
 
-    // Draw routing line following street networks from Mapbox Directions API
-    if (activeOrigin && activeDest) {
-      setIsLoadingRoute(true);
+    // 4. Draw route line for Active Route
+    if (originToDraw && destToDraw) {
+      // Use free OSRM (Open Source Routing Machine) to trace real streets without API keys
+      try {
+        const routingControl = L.Routing.control({
+          waypoints: [
+            L.latLng(originToDraw[0], originToDraw[1]),
+            L.latLng(destToDraw[0], destToDraw[1])
+          ],
+          router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'driving'
+          }),
+          lineOptions: {
+            styles: [
+              { color: '#10b981', opacity: 0.9, weight: 6 } // Vextor Primary Color (Emerald-500)
+            ],
+            addWaypoints: false
+          },
+          createMarker: () => null, // Hide default routing machine pins
+          show: false, // Suppress routing description details list
+          addWaypoints: false,
+          fitSelectedRoutes: false
+        }).addTo(map);
 
-      const fetchDirections = async () => {
-        try {
-          const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${activeOrigin[0]},${activeOrigin[1]};${activeDest[0]},${activeDest[1]}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('No se pudo calcular la ruta real en Mapbox.');
-          const data = await res.json();
+        routingControlRef.current = routingControl;
 
-          if (data && data.routes && data.routes.length > 0) {
-            const firstRoute = data.routes[0];
-            const routeGeoJSON = firstRoute.geometry;
-            const distanceKm = firstRoute.distance / 1000; // km
-            const durationMins = firstRoute.duration / 60; // minutes
+        // Callback with real street distance and time metrics on success
+        routingControl.on('routesfound', (e) => {
+          if (e.routes && e.routes[0]) {
+            const summary = e.routes[0].summary;
+            const distanceKm = (summary.totalDistance / 1000).toFixed(2);
+            const durationMins = Math.round(summary.totalTime / 60);
 
-            // 1. Draw route line on map
-            if (map.getSource('active-route')) {
-              map.getSource('active-route').setData({
-                type: 'Feature',
-                geometry: routeGeoJSON
-              });
-            } else {
-              map.addSource('active-route', {
-                type: 'geojson',
-                data: {
-                  type: 'Feature',
-                  geometry: routeGeoJSON
-                }
-              });
-
-              map.addLayer({
-                id: 'active-route-line',
-                type: 'line',
-                source: 'active-route',
-                layout: { 'line-join': 'round', 'line-cap': 'round' },
-                paint: {
-                  'line-color': '#10b981', // Emerald 500
-                  'line-width': 5.5,
-                  'line-opacity': 0.85
-                }
-              });
-            }
-
-            // 2. Fetch friendly names for addresses using Geocoding API if not present
-            let originAddress = `Coordenadas: ${activeOrigin[1].toFixed(5)}, ${activeOrigin[0].toFixed(5)}`;
-            let destinationAddress = `Coordenadas: ${activeDest[1].toFixed(5)}, ${activeDest[0].toFixed(5)}`;
-
-            try {
-              const [origRes, destRes] = await Promise.all([
-                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${activeOrigin[0]},${activeOrigin[1]}.json?access_token=${MAPBOX_TOKEN}`),
-                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${activeDest[0]},${activeDest[1]}.json?access_token=${MAPBOX_TOKEN}`)
-              ]);
-              if (origRes.ok) {
-                const oData = await origRes.json();
-                if (oData.features && oData.features.length > 0) originAddress = oData.features[0].place_name;
-              }
-              if (destRes.ok) {
-                const dData = await destRes.json();
-                if (dData.features && dData.features.length > 0) destinationAddress = dData.features[0].place_name;
-              }
-            } catch (geocodeErr) {
-              console.warn('Geocoding names during route calculation failed:', geocodeErr);
-            }
-
-            // 3. Callback to parent with route info
+            // Trigger callback for Routes dashboard
             onRouteCalculated?.({
-              distance: distanceKm.toFixed(2),
-              duration: Math.round(durationMins),
-              originAddress,
-              destinationAddress
+              distance: distanceKm,
+              duration: durationMins,
+              originAddress: selectedOrigin ? 'Dirección de Origen' : 'Ubicación Origen',
+              destinationAddress: selectedDestination ? 'Dirección de Destino' : 'Ubicación Destino'
             });
-
-            // 4. Fit bounds to contain the route path
-            const bounds = new mapboxgl.LngLatBounds();
-            routeGeoJSON.coordinates.forEach((coord) => {
-              bounds.extend(coord);
-            });
-            map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
-
-          } else {
-            // Draw straight Polyline fallback if no streets route is calculated
-            drawFallbackPolyline(map, activeOrigin, activeDest);
           }
-        } catch (err) {
-          console.error('Mapbox Directions error:', err);
-          drawFallbackPolyline(map, activeOrigin, activeDest);
-        } finally {
-          setIsLoadingRoute(false);
-        }
-      };
+        });
 
-      fetchDirections();
-    } else if (activeOrigin) {
-      map.easeTo({ center: activeOrigin, zoom: 14 });
-    } else if (activeDest) {
-      map.easeTo({ center: activeDest, zoom: 14 });
+        // Fallback to straight line on routing error
+        routingControl.on('routingerror', () => {
+          console.warn('OSRM routing failed, drawing direct Polyline fallback...');
+          drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
+        });
+
+      } catch (err) {
+        console.error('Failed to run Routing Machine:', err);
+        drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
+      }
+
+      // Center view and fit bounds on active route
+      const bounds = L.latLngBounds([originToDraw, destToDraw]);
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+
+    } else if (originToDraw) {
+      map.setView(originToDraw, 14);
+    } else if (destToDraw) {
+      map.setView(destToDraw, 14);
     }
 
-  }, [routes, activeRoute, selectedOrigin, selectedDestination, mapLoaded, redrawCounter]);
+  }, [routes, activeRoute, selectedOrigin, selectedDestination]);
 
-  // Fallback straight line drawing
-  const drawFallbackPolyline = (map, origin, dest) => {
-    if (map.getSource('active-route')) {
-      map.getSource('active-route').setData({
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: [origin, dest]
-        }
-      });
-    } else {
-      map.addSource('active-route', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [origin, dest]
-          }
-        }
-      });
+  // Fallback Polyline drawing helper
+  const drawActivePolyline = (map, origin, dest, title) => {
+    const polyline = L.polyline([origin, dest], {
+      color: '#10b981', // Emerald-500
+      weight: 5.5,
+      opacity: 0.95
+    })
+      .bindPopup(`<b>${title}</b>`)
+      .addTo(map);
+    activeLayersRef.current.push(polyline);
 
-      map.addLayer({
-        id: 'active-route-line',
-        type: 'line',
-        source: 'active-route',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 5,
-          'line-opacity': 0.9
-        }
-      });
-    }
+    // Estimate direct distance
+    const distMeters = map.distance(origin, dest);
+    const distanceKm = (distMeters / 1000).toFixed(2);
+    const durationMins = Math.round(distMeters / 1000 * 2.5); // Average urban speed estimate
 
-    // Fit straight line bounds
-    const bounds = new mapboxgl.LngLatBounds()
-      .extend(origin)
-      .extend(dest);
-    map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
-
-    // Inform parent of fallback values
     onRouteCalculated?.({
-      distance: (mapboxgl.LngLat.convert(origin).distanceTo(mapboxgl.LngLat.convert(dest)) / 1000).toFixed(2),
-      duration: Math.round(mapboxgl.LngLat.convert(origin).distanceTo(mapboxgl.LngLat.convert(dest)) / 1000 * 2), // Rough guess
-      originAddress: 'Ubicación de Origen',
-      destinationAddress: 'Ubicación de Destino'
+      distance: distanceKm,
+      duration: durationMins,
+      originAddress: 'Origen (Trayecto Directo)',
+      destinationAddress: 'Destino (Trayecto Directo)'
     });
   };
 
   const handleRecenter = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    map.easeTo({ center: [-74.0721, 4.7110], zoom: 12 });
+    map.setView([4.7110, -74.0721], 12, { animate: true });
   };
 
+  const activeProvider = TILE_PROVIDERS.find(p => p.id === activeTileId);
+
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-v-dark-border shadow-xl">
+    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-v-dark-border shadow-2xl transition-all duration-300">
+
+      {/* Real Map Canvas */}
       <div ref={mapContainerRef} className="w-full h-full min-h-[400px] lg:min-h-[600px] z-10" />
 
-      {/* Floating Controls: Style Selector & Traffic Layers */}
-      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border p-2.5 rounded-xl shadow-2xl max-w-[170px] text-xs">
-        {/* Style selection */}
+      {/* Modern custom tile loader overlay */}
+      {isTilesLoading && (
+        <div className="absolute top-4 right-14 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-v-dark-soft/90 backdrop-blur-md border border-v-dark-border rounded-xl shadow-xl">
+          <Loader2 size={13} className="text-primary animate-spin" />
+          <span className="text-[10px] font-semibold text-v-white">Cargando mapa...</span>
+        </div>
+      )}
+
+      {/* Floating Panel: Custom Google Maps / Mapbox style Layer Selector */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border p-3 rounded-2xl shadow-2xl max-w-[190px]">
         <div className="space-y-1.5 text-left">
-          <label className="text-[10px] font-bold text-v-gray uppercase tracking-wider flex items-center gap-1">
-            <Layers size={11} className="text-primary" /> Estilo del Mapa
+          <label className="text-[10px] font-bold text-v-gray uppercase tracking-wider flex items-center gap-1.5">
+            <Layers size={12} className="text-primary" /> Estilo del Mapa
           </label>
-          <div className="grid grid-cols-2 gap-1 bg-v-dark/40 p-1 rounded-lg">
-            {MAP_STYLES.map(style => (
+          <div className="flex flex-col gap-1">
+            {TILE_PROVIDERS.map(provider => (
               <button
-                key={style.id}
+                key={provider.id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCurrentStyle(style.id);
+                  handleLayerChange(provider.id);
                 }}
                 className={cn(
-                  "px-2 py-1 rounded text-[10px] font-semibold transition-all cursor-pointer",
-                  currentStyle === style.id
-                    ? "bg-primary text-v-white shadow-sm"
-                    : "text-v-gray hover:text-v-white"
+                  "px-3 py-1.5 rounded-lg text-left text-xs font-medium transition-all flex items-center justify-between cursor-pointer",
+                  activeTileId === provider.id
+                    ? "bg-primary/20 text-primary border border-primary/40 font-semibold"
+                    : "text-v-gray hover:text-v-white hover:bg-v-dark/40 border border-transparent"
                 )}
               >
-                {style.label}
+                <span>{provider.label}</span>
+                {activeTileId === provider.id && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Separator line */}
-        <div className="border-t border-v-dark-border/60 my-1" />
-
-        {/* Traffic Toggle */}
-        <div className="flex items-center justify-between gap-2.5 text-left">
-          <div className="space-y-0.5">
-            <div className="font-bold text-v-white flex items-center gap-1">
-              <Activity size={12} className="text-amber-500" /> Tránsito TomTom
-            </div>
-            <div className="text-[9px] text-v-gray">Capa de tráfico en vivo</div>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setTrafficEnabled(!trafficEnabled);
-            }}
-            className={cn(
-              "p-1.5 rounded-lg border transition-all cursor-pointer",
-              trafficEnabled
-                ? "bg-amber-500/20 border-amber-500/40 text-amber-400"
-                : "bg-v-dark/50 border-v-dark-border text-v-gray hover:text-v-white"
-            )}
-            title={trafficEnabled ? "Desactivar Tráfico" : "Activar Tráfico"}
-          >
-            {trafficEnabled ? <Eye size={13} /> : <EyeOff size={13} />}
-          </button>
-        </div>
       </div>
 
-      {/* Recenter Map floating button */}
-      <button
-        onClick={handleRecenter}
-        className="absolute bottom-4 right-4 z-20 p-2.5 bg-v-dark-soft/95 backdrop-blur-sm border border-v-dark-border rounded-xl text-v-gray hover:text-v-white shadow-lg cursor-pointer transition-all hover:scale-105"
-        title="Centrar en Bogotá"
-      >
-        <Navigation size={15} className="rotate-45" />
-      </button>
+      {/* Active Layer Legend Indicator (Bottom-Center) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-full shadow-lg flex items-center gap-2 pointer-events-none text-xs">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="text-v-gray">Capa:</span>
+        <span className="font-bold text-v-white">{activeProvider?.name}</span>
+      </div>
 
-      {/* Loading Overlay spinner */}
-      {isLoadingRoute && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-30 flex items-center justify-center pointer-events-none transition-opacity duration-300">
-          <div className="bg-v-dark-soft/90 border border-v-dark-border px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 pointer-events-auto">
-            <RefreshCw size={15} className="text-primary animate-spin" />
-            <span className="text-xs font-semibold text-v-white">Trazando calles...</span>
-          </div>
-        </div>
-      )}
+      {/* Floating Action Controls Block (Bottom Right) */}
+      <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
+        {/* Find My Location Button */}
+        <button
+          onClick={handleMyLocation}
+          className="p-3 bg-v-dark-soft/95 backdrop-blur-sm border border-v-dark-border rounded-xl text-v-gray hover:text-v-white hover:border-primary/40 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
+          title="Obtener mi ubicación actual"
+        >
+          <Compass size={16} className="text-primary" />
+        </button>
 
-      {/* Visual Instruction Overlay */}
-      <div className="absolute bottom-4 left-4 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border px-3 py-2 rounded-xl text-xs text-v-white z-20 pointer-events-none shadow-lg space-y-1 max-w-[280px] text-left">
-        <div className="font-bold text-emerald-400 flex items-center gap-1">
+        {/* Recenter Map Button */}
+        <button
+          onClick={handleRecenter}
+          className="p-3 bg-v-dark-soft/95 backdrop-blur-sm border border-v-dark-border rounded-xl text-v-gray hover:text-v-white hover:border-primary/40 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
+          title="Centrar en Bogotá"
+        >
+          <Navigation size={16} className="rotate-45" />
+        </button>
+      </div>
+
+      {/* Interactive Overlay Info Instructions */}
+      <div className="absolute bottom-4 left-4 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border px-3.5 py-2.5 rounded-2xl text-xs text-v-white z-20 pointer-events-none shadow-xl space-y-1 max-w-[280px] text-left">
+        <div className="font-bold text-emerald-400 flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          Navegación Interactiva
+          Navegación Interactiva Gratis
         </div>
         <p className="text-[11px] text-v-gray leading-relaxed">
-          Haz clic en el mapa para marcar el <strong className="text-emerald-400">Origen (A)</strong> y el <strong className="text-red-400">Destino (B)</strong>. O busca direcciones en el formulario.
+          Haz clic en cualquier parte del mapa para marcar <strong className="text-emerald-400">Origen (A)</strong> y <strong className="text-red-400">Destino (B)</strong> utilizando geocodificación gratuita.
         </p>
       </div>
     </div>
