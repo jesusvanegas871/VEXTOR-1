@@ -1,6 +1,57 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import { Layers, MapPin, Navigation, Compass, Loader2, AlertCircle } from 'lucide-react';
+import { cn } from '../../../utils/cn';
+
+// Tile Providers configuration list
+const TILE_PROVIDERS = [
+  {
+    id: 'carto-dark',
+    name: 'Carto Dark Matter',
+    label: 'Oscuro',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  },
+  {
+    id: 'osm',
+    name: 'OpenStreetMap Standard',
+    label: 'Calles',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+    subdomains: 'abc',
+    maxZoom: 19
+  },
+  {
+    id: 'carto-positron',
+    name: 'Carto Positron',
+    label: 'Claro',
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20
+  },
+  {
+    id: 'opentopo',
+    name: 'OpenTopoMap',
+    label: 'Relieve',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenTopoMap contributors &copy; OpenStreetMap',
+    subdomains: 'abc',
+    maxZoom: 17
+  },
+  {
+    id: 'esri-satellite',
+    name: 'Esri World Imagery',
+    label: 'Satélite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, GeoEye',
+    subdomains: [],
+    maxZoom: 18
+  }
+];
 
 // Custom Marker Icons using pure Tailwind to avoid asset path errors in Vite
 const createMarkerIcon = (type, label = '') => {
@@ -27,6 +78,18 @@ const createOtherMarkerIcon = (colorClass) => {
   });
 };
 
+const createMyLocationIcon = () => {
+  return L.divIcon({
+    html: `<div class="relative flex items-center justify-center w-6 h-6">
+             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-50"></span>
+             <div class="relative w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-lg"></div>
+           </div>`,
+    className: 'mylocation-leaflet-marker-div',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
 // Colors for other routes to make them distinctive
 const DISTINCT_COLORS = [
   { stroke: '#3b82f6', bg: 'bg-blue-500' },     // Blue
@@ -43,15 +106,34 @@ const MapComponent = ({
   selectedOrigin = '',
   selectedDestination = '',
   onSelectPoints,
+  onRouteCalculated,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
+  // Layer & tile references
+  const [activeTileId, setActiveTileId] = useState('carto-dark');
+  const [isTilesLoading, setIsTilesLoading] = useState(false);
+  const [hasTileError, setHasTileError] = useState(false);
+  const tileLayerRef = useRef(null);
+
   // Keep references to current interactive layers to clean them up on redraw
   const activeLayersRef = useRef([]);
   const routingControlRef = useRef(null);
+  const myLocationMarkerRef = useRef(null);
 
-  // Initialize Map
+  // Helper to safely parse coordinate string "lat, lng" into [lat, lng] array
+  const parseCoordinates = (coordString) => {
+    if (!coordString) return null;
+    const parts = coordString.split(',');
+    if (parts.length !== 2) return null;
+    const lat = parseFloat(parts[0]);
+    const lng = parseFloat(parts[1]);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return [lat, lng];
+  };
+
+  // Initialize Map with OpenStreetMap Standard or Carto Dark Matter default
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -59,24 +141,48 @@ const MapComponent = ({
     const map = L.map(mapContainerRef.current, {
       center: [4.7110, -74.0721],
       zoom: 12,
-      zoomControl: true,
+      zoomControl: false, // Turn off default zoom control to customize it nicely
     });
 
-    // Premium dark tile layer matching Vextor's dark theme
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+    // Add custom zoom control in top right
+    L.control.zoom({
+      position: 'topright'
     }).addTo(map);
 
     mapInstanceRef.current = map;
 
+    // Load initial tile layer (Carto Dark Matter is a gorgeous theme)
+    switchTileLayer('carto-dark');
+
     // Handle map clicks for selecting points
     map.on('click', (e) => {
+      // Prevent clicking map features triggers on markers
+      if (e.originalEvent.defaultPrevented) return;
+
       const { lat, lng } = e.latlng;
       const coordString = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      onSelectPoints(coordString);
+
+      // Resolve address through reverse geocoding via Nominatim
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`, {
+        headers: {
+          'User-Agent': 'VextorFleetApp/1.0 (contact: info@vextor.com)'
+        }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const address = data?.display_name || `Ubicación en ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          onSelectPoints?.({ coordinates: coordString, address });
+        })
+        .catch((err) => {
+          console.warn('Reverse geocoding failed, falling back to raw coordinates:', err);
+          onSelectPoints?.({ coordinates: coordString, address: `Coordenadas: ${coordString}` });
+        });
     });
+
+    // Trigger map resize to prevent sizing bugs on load
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
 
     return () => {
       if (mapInstanceRef.current) {
@@ -85,6 +191,95 @@ const MapComponent = ({
       }
     };
   }, []);
+
+  // Set tile loading states and handle tile layer swaps
+  const switchTileLayer = (providerId) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const provider = TILE_PROVIDERS.find(p => p.id === providerId) || TILE_PROVIDERS[0];
+
+    // Remove existing tile layer
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    setHasTileError(false);
+    setIsTilesLoading(true);
+
+    const newLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      subdomains: provider.subdomains,
+      maxZoom: provider.maxZoom,
+    });
+
+    // Tile Load Listeners for a modern UX loading state indicator
+    newLayer.on('loading', () => {
+      setIsTilesLoading(true);
+    });
+    newLayer.on('load', () => {
+      setIsTilesLoading(false);
+    });
+    newLayer.on('tileerror', (error) => {
+      console.error(`Tile layer load error for ${provider.name}:`, error);
+      setIsTilesLoading(false);
+      setHasTileError(true);
+
+      // Robust Auto Fallback to OSM
+      if (providerId !== 'osm') {
+        console.warn('Falling back to OpenStreetMap Standard layer automatically...');
+        switchTileLayer('osm');
+      }
+    });
+
+    newLayer.addTo(map);
+    tileLayerRef.current = newLayer;
+    setActiveTileId(providerId);
+  };
+
+  // Trigger tile swaps when activeTileId state updates
+  const handleLayerChange = (providerId) => {
+    switchTileLayer(providerId);
+  };
+
+  // Browser Geolocation API wrapper to locate User's location
+  const handleMyLocation = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (!navigator.geolocation) {
+      alert('La geolocalización no es compatible con su navegador.');
+      return;
+    }
+
+    setIsTilesLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsTilesLoading(false);
+        const { latitude, longitude } = position.coords;
+        const userLatLng = [latitude, longitude];
+
+        // Place beautiful pulsing dot marker
+        if (myLocationMarkerRef.current) {
+          map.removeLayer(myLocationMarkerRef.current);
+        }
+
+        const marker = L.marker(userLatLng, { icon: createMyLocationIcon() })
+          .bindPopup('<b>Mi ubicación actual</b>')
+          .addTo(map);
+
+        myLocationMarkerRef.current = marker;
+        map.setView(userLatLng, 15, { animate: true, duration: 1 });
+      },
+      (error) => {
+        setIsTilesLoading(false);
+        console.warn('Geolocation error:', error);
+        alert('No se pudo determinar su ubicación actual. Asegúrese de otorgar permisos de ubicación.');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   // Update map state and render routes/markers
   useEffect(() => {
@@ -100,9 +295,13 @@ const MapComponent = ({
       routingControlRef.current = null;
     }
 
-    // 2. Draw Other (Non-Active) Routes
+    // Preserve the User's Location dot if it exists
+    if (myLocationMarkerRef.current) {
+      myLocationMarkerRef.current.addTo(map);
+    }
+
+    // 2. Draw Other (Non-Active) Routes in background
     routes.forEach((route, index) => {
-      // Skip if this is the active route (we draw active route with high priority next)
       if (activeRoute && route.id_ruta === activeRoute.id_ruta) return;
 
       const originCoords = parseCoordinates(route.origen);
@@ -119,12 +318,12 @@ const MapComponent = ({
           .bindPopup(`<b>${route.codigo_ruta} (Fin)</b><br>${route.nombre_ruta}`)
           .addTo(map);
 
-        // Draw simple Polyline for other routes
+        // Draw simple Polyline for other background routes
         const polyline = L.polyline([originCoords, destCoords], {
           color: colorSet.stroke,
-          weight: 3,
-          opacity: 0.6,
-          dashArray: '5, 10'
+          weight: 3.5,
+          opacity: 0.55,
+          dashArray: '4, 8'
         })
           .bindPopup(`<b>Ruta: ${route.codigo_ruta}</b><br>${route.nombre_ruta}`)
           .addTo(map);
@@ -137,7 +336,6 @@ const MapComponent = ({
     let originToDraw = null;
     let destToDraw = null;
     let activeRouteName = 'Nueva Ruta';
-    let isEditingOrCreate = false;
 
     if (activeRoute) {
       originToDraw = parseCoordinates(activeRoute.origen);
@@ -146,7 +344,6 @@ const MapComponent = ({
     } else {
       originToDraw = parseCoordinates(selectedOrigin);
       destToDraw = parseCoordinates(selectedDestination);
-      isEditingOrCreate = true;
     }
 
     if (originToDraw) {
@@ -165,7 +362,7 @@ const MapComponent = ({
 
     // 4. Draw route line for Active Route
     if (originToDraw && destToDraw) {
-      // Try to use Leaflet Routing Machine for streets
+      // Use free OSRM (Open Source Routing Machine) to trace real streets without API keys
       try {
         const routingControl = L.Routing.control({
           waypoints: [
@@ -173,7 +370,8 @@ const MapComponent = ({
             L.latLng(destToDraw[0], destToDraw[1])
           ],
           router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1'
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'driving'
           }),
           lineOptions: {
             styles: [
@@ -181,31 +379,47 @@ const MapComponent = ({
             ],
             addWaypoints: false
           },
-          createMarker: () => null, // Suppress default ugly routing machine markers
-          show: false, // Suppress routing instruction box
+          createMarker: () => null, // Hide default routing machine pins
+          show: false, // Suppress routing description details list
           addWaypoints: false,
           fitSelectedRoutes: false
         }).addTo(map);
 
         routingControlRef.current = routingControl;
 
-        // Fallback to polyline on routing error (e.g. OSRM rate limits or offline)
+        // Callback with real street distance and time metrics on success
+        routingControl.on('routesfound', (e) => {
+          if (e.routes && e.routes[0]) {
+            const summary = e.routes[0].summary;
+            const distanceKm = (summary.totalDistance / 1000).toFixed(2);
+            const durationMins = Math.round(summary.totalTime / 60);
+
+            // Trigger callback for Routes dashboard
+            onRouteCalculated?.({
+              distance: distanceKm,
+              duration: durationMins,
+              originAddress: selectedOrigin ? 'Dirección de Origen' : 'Ubicación Origen',
+              destinationAddress: selectedDestination ? 'Dirección de Destino' : 'Ubicación Destino'
+            });
+          }
+        });
+
+        // Fallback to straight line on routing error
         routingControl.on('routingerror', () => {
-          console.warn('Routing machine error, falling back to Polyline...');
+          console.warn('OSRM routing failed, drawing direct Polyline fallback...');
           drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
         });
 
       } catch (err) {
-        console.error('Failed to initialize routing machine:', err);
+        console.error('Failed to run Routing Machine:', err);
         drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
       }
 
-      // Center view on active route
+      // Center view and fit bounds on active route
       const bounds = L.latLngBounds([originToDraw, destToDraw]);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 
     } else if (originToDraw) {
-      // If only origin is selected, center on it
       map.setView(originToDraw, 14);
     } else if (destToDraw) {
       map.setView(destToDraw, 14);
@@ -213,41 +427,119 @@ const MapComponent = ({
 
   }, [routes, activeRoute, selectedOrigin, selectedDestination]);
 
-  // Utility to draw a robust emerald Polyline for the active route
+  // Fallback Polyline drawing helper
   const drawActivePolyline = (map, origin, dest, title) => {
     const polyline = L.polyline([origin, dest], {
       color: '#10b981', // Emerald-500
-      weight: 5,
+      weight: 5.5,
       opacity: 0.95
     })
       .bindPopup(`<b>${title}</b>`)
       .addTo(map);
     activeLayersRef.current.push(polyline);
+
+    // Estimate direct distance
+    const distMeters = map.distance(origin, dest);
+    const distanceKm = (distMeters / 1000).toFixed(2);
+    const durationMins = Math.round(distMeters / 1000 * 2.5); // Average urban speed estimate
+
+    onRouteCalculated?.({
+      distance: distanceKm,
+      duration: durationMins,
+      originAddress: 'Origen (Trayecto Directo)',
+      destinationAddress: 'Destino (Trayecto Directo)'
+    });
   };
 
-  // Helper to safely parse coordinate string "lat, lng" into [lat, lng] array
-  const parseCoordinates = (coordString) => {
-    if (!coordString) return null;
-    const parts = coordString.split(',');
-    if (parts.length !== 2) return null;
-    const lat = parseFloat(parts[0]);
-    const lng = parseFloat(parts[1]);
-    if (isNaN(lat) || isNaN(lng)) return null;
-    return [lat, lng];
+  const handleRecenter = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    map.setView([4.7110, -74.0721], 12, { animate: true });
   };
+
+  const activeProvider = TILE_PROVIDERS.find(p => p.id === activeTileId);
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-v-dark-border shadow-xl">
+    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-v-dark-border shadow-2xl transition-all duration-300">
+
+      {/* Real Map Canvas */}
       <div ref={mapContainerRef} className="w-full h-full min-h-[400px] lg:min-h-[600px] z-10" />
 
-      {/* Visual map Overlay Instruction */}
-      <div className="absolute bottom-4 left-4 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border px-3 py-2 rounded-xl text-xs text-v-white z-20 pointer-events-none shadow-lg space-y-1 max-w-[280px]">
-        <div className="font-bold text-emerald-400 flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          ¿Cómo crear un trayecto?
+      {/* Modern custom tile loader overlay */}
+      {isTilesLoading && (
+        <div className="absolute top-4 right-14 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-v-dark-soft/90 backdrop-blur-md border border-v-dark-border rounded-xl shadow-xl">
+          <Loader2 size={13} className="text-primary animate-spin" />
+          <span className="text-[10px] font-semibold text-v-white">Cargando mapa...</span>
         </div>
-        <p className="text-v-gray leading-relaxed">
-          Haz clic en el mapa para marcar el <strong className="text-emerald-400">Origen (A)</strong> y un segundo clic para el <strong className="text-red-400">Destino (B)</strong>.
+      )}
+
+      {/* Floating Panel: Custom Google Maps / Mapbox style Layer Selector */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border p-3 rounded-2xl shadow-2xl max-w-[190px]">
+        <div className="space-y-1.5 text-left">
+          <label className="text-[10px] font-bold text-v-gray uppercase tracking-wider flex items-center gap-1.5">
+            <Layers size={12} className="text-primary" /> Estilo del Mapa
+          </label>
+          <div className="flex flex-col gap-1">
+            {TILE_PROVIDERS.map(provider => (
+              <button
+                key={provider.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLayerChange(provider.id);
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-left text-xs font-medium transition-all flex items-center justify-between cursor-pointer",
+                  activeTileId === provider.id
+                    ? "bg-primary/20 text-primary border border-primary/40 font-semibold"
+                    : "text-v-gray hover:text-v-white hover:bg-v-dark/40 border border-transparent"
+                )}
+              >
+                <span>{provider.label}</span>
+                {activeTileId === provider.id && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Active Layer Legend Indicator (Bottom-Center) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border rounded-full shadow-lg flex items-center gap-2 pointer-events-none text-xs">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="text-v-gray">Capa:</span>
+        <span className="font-bold text-v-white">{activeProvider?.name}</span>
+      </div>
+
+      {/* Floating Action Controls Block (Bottom Right) */}
+      <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
+        {/* Find My Location Button */}
+        <button
+          onClick={handleMyLocation}
+          className="p-3 bg-v-dark-soft/95 backdrop-blur-sm border border-v-dark-border rounded-xl text-v-gray hover:text-v-white hover:border-primary/40 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
+          title="Obtener mi ubicación actual"
+        >
+          <Compass size={16} className="text-primary" />
+        </button>
+
+        {/* Recenter Map Button */}
+        <button
+          onClick={handleRecenter}
+          className="p-3 bg-v-dark-soft/95 backdrop-blur-sm border border-v-dark-border rounded-xl text-v-gray hover:text-v-white hover:border-primary/40 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
+          title="Centrar en Bogotá"
+        >
+          <Navigation size={16} className="rotate-45" />
+        </button>
+      </div>
+
+      {/* Interactive Overlay Info Instructions */}
+      <div className="absolute bottom-4 left-4 bg-v-dark-soft/95 backdrop-blur-md border border-v-dark-border px-3.5 py-2.5 rounded-2xl text-xs text-v-white z-20 pointer-events-none shadow-xl space-y-1 max-w-[280px] text-left">
+        <div className="font-bold text-emerald-400 flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          Navegación Interactiva Gratis
+        </div>
+        <p className="text-[11px] text-v-gray leading-relaxed">
+          Haz clic en cualquier parte del mapa para marcar <strong className="text-emerald-400">Origen (A)</strong> y <strong className="text-red-400">Destino (B)</strong> utilizando geocodificación gratuita.
         </p>
       </div>
     </div>
