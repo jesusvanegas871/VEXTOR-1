@@ -47,7 +47,8 @@ def create_notification(
     titulo: str,
     descripcion: str,
     tipo: str,
-    user_id: Optional[uuid.UUID] = None
+    user_id: Optional[uuid.UUID] = None,
+    send_email: bool = False
 ):
     try:
         new_notif = models.Notificacion(
@@ -61,6 +62,26 @@ def create_notification(
         )
         db.add(new_notif)
         db.commit()
+
+        if send_email:
+            try:
+                from email_service import send_critical_alert_email
+                # If specific user, send to user's email; otherwise send to system admin email
+                target_email = None
+                if user_id:
+                    u = db.query(models.Usuario).filter(models.Usuario.id_usuario == user_id).first()
+                    if u:
+                        target_email = u.correo_usuario
+                if not target_email:
+                    company = db.query(models.Empresa).first()
+                    if company and company.email:
+                        target_email = company.email
+
+                if target_email:
+                    send_critical_alert_email(target_email, titulo, descripcion, category=tipo)
+            except Exception as mail_err:
+                print(f"Error triggering alert email: {mail_err}")
+
     except Exception as e:
         db.rollback()
         print(f"Error creating notification: {e}")
