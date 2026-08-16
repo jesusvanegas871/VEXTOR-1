@@ -55,6 +55,14 @@ app.include_router(reports_router)
 def startup_populate():
     db = SessionLocal()
     try:
+        # Migrate any existing "Super Administrador" role in DB to "Administrador"
+        legacy_roles = db.query(models.Rol).filter(models.Rol.nombre_rol == "Super Administrador").all()
+        for lr in legacy_roles:
+            lr.nombre_rol = "Administrador"
+            lr.descripcion_rol = "Administrador de la flota Vextor"
+        if legacy_roles:
+            db.commit()
+
         # Check if Rol has any records
         if db.query(models.Rol).count() == 0:
             rol_admin = models.Rol(
