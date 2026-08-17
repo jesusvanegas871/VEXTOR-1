@@ -143,13 +143,15 @@ const MapComponent = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAutoFollowing, setIsAutoFollowing] = useState(true);
 
-  // References to active layers and tile layer
+  // References to active layers, routing, and generation token for async callbacks
   const tileLayerRef = useRef(null);
   const activeLayersRef = useRef([]);
   const vehicleMarkerRef = useRef(null);
   const pathHistoryRef = useRef([]);
   const completedPolylineRef = useRef(null);
   const routingControlRef = useRef(null);
+  const routingGenerationRef = useRef(0);
+  const fallbackPolylineRef = useRef(null);
   const myLocationMarkerRef = useRef(null);
 
   // Click outside to close dropdown ref
@@ -256,12 +258,56 @@ const MapComponent = ({
     window.addEventListener('resize', handleWindowResize);
 
     return () => {
+      // Robust full map unmount cleanup
+      routingGenerationRef.current += 1;
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleWindowResize);
       clearTimeout(timer1);
       clearTimeout(timer2);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+
+      const map = mapInstanceRef.current;
+      if (map) {
+        // Clean up routing control
+        if (routingControlRef.current) {
+          try {
+            routingControlRef.current.off();
+            map.removeControl(routingControlRef.current);
+          } catch (e) {
+            console.warn('Cleanup routing control warning:', e);
+          }
+          routingControlRef.current = null;
+        }
+
+        // Clean up layers safely and reset refs
+        if (myLocationMarkerRef.current && map.hasLayer(myLocationMarkerRef.current)) {
+          map.removeLayer(myLocationMarkerRef.current);
+        }
+        myLocationMarkerRef.current = null;
+
+        if (vehicleMarkerRef.current && map.hasLayer(vehicleMarkerRef.current)) {
+          map.removeLayer(vehicleMarkerRef.current);
+        }
+        vehicleMarkerRef.current = null;
+
+        if (completedPolylineRef.current && map.hasLayer(completedPolylineRef.current)) {
+          map.removeLayer(completedPolylineRef.current);
+        }
+        completedPolylineRef.current = null;
+
+        if (fallbackPolylineRef.current && map.hasLayer(fallbackPolylineRef.current)) {
+          map.removeLayer(fallbackPolylineRef.current);
+        }
+        fallbackPolylineRef.current = null;
+
+        activeLayersRef.current.forEach(layer => {
+          if (layer && map.hasLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        activeLayersRef.current = [];
+        pathHistoryRef.current = [];
+
+        map.remove();
         mapInstanceRef.current = null;
       }
     };
@@ -364,22 +410,62 @@ const MapComponent = ({
     );
   };
 
-  // Update map state and render routes/markers
+  // Fallback Polyline drawing helper
+  const drawActivePolyline = (map, origin, dest, title, requestGen) => {
+    if (requestGen !== undefined && requestGen !== routingGenerationRef.current) return;
+    if (!map || !origin || !dest) return;
+
+    if (fallbackPolylineRef.current && map.hasLayer(fallbackPolylineRef.current)) {
+      map.removeLayer(fallbackPolylineRef.current);
+    }
+
+    const polyline = L.polyline([origin, dest], {
+      color: '#10b981',
+      weight: 5.5,
+      opacity: 0.95
+    })
+      .bindPopup(`<b>${title}</b>`)
+      .addTo(map);
+
+    fallbackPolylineRef.current = polyline;
+
+    // Estimate direct distance
+    const distMeters = map.distance(origin, dest);
+    const distanceKm = (distMeters / 1000).toFixed(2);
+    const durationMins = Math.round((distMeters / 1000) * 2.5);
+
+    onRouteCalculated?.({
+      distance: distanceKm,
+      duration: durationMins,
+      originAddress: 'Origen (Trayecto Directo)',
+      destinationAddress: 'Destino (Trayecto Directo)'
+    });
+  };
+
+  // Update map state and render routes/markers safely with lifecycle management
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // 1. Clear previous layers & routing controls
-    activeLayersRef.current.forEach(layer => map.removeLayer(layer));
+    // Increment generation token to invalidate any pending async callbacks
+    routingGenerationRef.current += 1;
+    const currentGen = routingGenerationRef.current;
+
+    // 1. Safe clearance of active layers
+    activeLayersRef.current.forEach(layer => {
+      if (layer && map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    });
     activeLayersRef.current = [];
 
-    if (routingControlRef.current) {
-      map.removeControl(routingControlRef.current);
-      routingControlRef.current = null;
+    if (fallbackPolylineRef.current && map.hasLayer(fallbackPolylineRef.current)) {
+      map.removeLayer(fallbackPolylineRef.current);
+      fallbackPolylineRef.current = null;
     }
 
     // Preserve the User's Location dot if it exists
-    if (myLocationMarkerRef.current) {
+    if (myLocationMarkerRef.current && !map.hasLayer(myLocationMarkerRef.current)) {
       myLocationMarkerRef.current.addTo(map);
     }
 
@@ -393,7 +479,6 @@ const MapComponent = ({
       if (originCoords && destCoords) {
         const colorSet = DISTINCT_COLORS[index % DISTINCT_COLORS.length];
 
-        // Draw markers
         const startMarker = L.marker(originCoords, { icon: createOtherMarkerIcon(colorSet.bg) })
           .bindPopup(`<b>${route.codigo_ruta} (Inicio)</b><br>${route.nombre_ruta}`)
           .addTo(map);
@@ -401,7 +486,6 @@ const MapComponent = ({
           .bindPopup(`<b>${route.codigo_ruta} (Fin)</b><br>${route.nombre_ruta}`)
           .addTo(map);
 
-        // Draw simple Polyline for other background routes
         const polyline = L.polyline([originCoords, destCoords], {
           color: colorSet.stroke,
           weight: 3.5,
@@ -443,106 +527,116 @@ const MapComponent = ({
       activeLayersRef.current.push(destMarker);
     }
 
-    // 4. Draw route line for Active Route
+    // 4. Lifecycle management of L.Routing.control (Reuse single instance when possible)
     if (originToDraw && destToDraw) {
-      // Use free OSRM (Open Source Routing Machine) to trace real streets without API keys
-      try {
-        const routingControl = L.Routing.control({
-          waypoints: [
-            L.latLng(originToDraw[0], originToDraw[1]),
-            L.latLng(destToDraw[0], destToDraw[1])
-          ],
-          router: L.Routing.osrmv1({
-            serviceUrl: 'https://router.project-osrm.org/route/v1',
-            profile: 'driving'
-          }),
-          lineOptions: {
-            styles: [
-              { color: '#10b981', opacity: 0.9, weight: 6 } // Vextor Primary Color (Emerald-500)
-            ],
-            addWaypoints: false
-          },
-          createMarker: () => null, // Hide default routing machine pins
-          show: false, // Suppress routing description details list
-          addWaypoints: false,
-          fitSelectedRoutes: false
-        }).addTo(map);
+      const osrmServiceUrl = import.meta.env.VITE_ROUTING_SERVICE_URL || 'https://router.project-osrm.org/route/v1';
+      const targetWaypoints = [
+        L.latLng(originToDraw[0], originToDraw[1]),
+        L.latLng(destToDraw[0], destToDraw[1])
+      ];
 
-        routingControlRef.current = routingControl;
+      const thisRequestGen = currentGen;
 
-        // Callback with real street distance and time metrics on success
-        routingControl.on('routesfound', (e) => {
-          if (e.routes && e.routes[0]) {
-            const summary = e.routes[0].summary;
-            const distanceKm = (summary.totalDistance / 1000).toFixed(2);
-            const durationMins = Math.round(summary.totalTime / 60);
-            const instructions = e.routes[0].instructions || [];
+      const handleRoutesFound = (e) => {
+        if (thisRequestGen !== routingGenerationRef.current || !mapInstanceRef.current) return;
 
-            onRouteCalculated?.({
-              distance: distanceKm,
-              duration: durationMins,
-              originAddress: selectedOrigin ? 'Dirección de Origen' : 'Ubicación Origen',
-              destinationAddress: selectedDestination ? 'Dirección de Destino' : 'Ubicación Destino',
-              instructions: instructions.map(inst => ({
-                text: inst.text,
-                distance: inst.distance,
-                type: inst.type
-              }))
-            });
-          }
-        });
+        if (e.routes && e.routes[0]) {
+          const summary = e.routes[0].summary;
+          const distanceKm = (summary.totalDistance / 1000).toFixed(2);
+          const durationMins = Math.round(summary.totalTime / 60);
+          const instructions = e.routes[0].instructions || [];
 
-        // Fallback to straight line on routing error
-        routingControl.on('routingerror', () => {
-          console.warn('OSRM routing failed, drawing direct Polyline fallback...');
-          drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
-        });
+          onRouteCalculated?.({
+            distance: distanceKm,
+            duration: durationMins,
+            originAddress: selectedOrigin ? 'Dirección de Origen' : 'Ubicación Origen',
+            destinationAddress: selectedDestination ? 'Dirección de Destino' : 'Ubicación Destino',
+            instructions: instructions.map(inst => ({
+              text: inst.text,
+              distance: inst.distance,
+              type: inst.type
+            }))
+          });
+        }
+      };
 
-      } catch (err) {
-        console.error('Failed to run Routing Machine:', err);
-        drawActivePolyline(map, originToDraw, destToDraw, activeRouteName);
+      const handleRoutingError = () => {
+        if (thisRequestGen !== routingGenerationRef.current || !mapInstanceRef.current) return;
+        console.warn('OSRM routing failed, drawing direct Polyline fallback...');
+        drawActivePolyline(map, originToDraw, destToDraw, activeRouteName, thisRequestGen);
+      };
+
+      if (routingControlRef.current) {
+        // Reuse existing control instance without destroying it
+        try {
+          routingControlRef.current.off('routesfound');
+          routingControlRef.current.off('routingerror');
+          routingControlRef.current.on('routesfound', handleRoutesFound);
+          routingControlRef.current.on('routingerror', handleRoutingError);
+          routingControlRef.current.setWaypoints(targetWaypoints);
+        } catch (e) {
+          console.warn('Error updating waypoints, recreating routing control:', e);
+          try {
+            map.removeControl(routingControlRef.current);
+          } catch (_) {}
+          routingControlRef.current = null;
+        }
       }
 
-      // Center view and fit bounds on active route
+      if (!routingControlRef.current) {
+        try {
+          const routingControl = L.Routing.control({
+            waypoints: targetWaypoints,
+            router: L.Routing.osrmv1({
+              serviceUrl: osrmServiceUrl,
+              profile: 'driving'
+            }),
+            lineOptions: {
+              styles: [
+                { color: '#10b981', opacity: 0.9, weight: 6 }
+              ],
+              addWaypoints: false
+            },
+            createMarker: () => null,
+            show: false,
+            addWaypoints: false,
+            fitSelectedRoutes: false
+          }).addTo(map);
+
+          routingControlRef.current = routingControl;
+          routingControl.on('routesfound', handleRoutesFound);
+          routingControl.on('routingerror', handleRoutingError);
+
+        } catch (err) {
+          console.error('Failed to instantiate Routing Machine:', err);
+          drawActivePolyline(map, originToDraw, destToDraw, activeRouteName, currentGen);
+        }
+      }
+
       const bounds = L.latLngBounds([originToDraw, destToDraw]);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 
-    } else if (originToDraw) {
-      map.setView(originToDraw, 14);
-    } else if (destToDraw) {
-      map.setView(destToDraw, 14);
+    } else {
+      // Clear waypoints if active route has no valid points
+      if (routingControlRef.current) {
+        try {
+          routingControlRef.current.setWaypoints([]);
+        } catch (_) {}
+      }
+      if (originToDraw) {
+        map.setView(originToDraw, 14);
+      } else if (destToDraw) {
+        map.setView(destToDraw, 14);
+      }
     }
 
-    // Force invalidation on route changes to make sure tiles display perfectly without cutoffs
     setTimeout(() => {
-      map.invalidateSize();
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
     }, 150);
 
   }, [routes, activeRoute, selectedOrigin, selectedDestination]);
-
-  // Fallback Polyline drawing helper
-  const drawActivePolyline = (map, origin, dest, title) => {
-    const polyline = L.polyline([origin, dest], {
-      color: '#10b981',
-      weight: 5.5,
-      opacity: 0.95
-    })
-      .bindPopup(`<b>${title}</b>`)
-      .addTo(map);
-    activeLayersRef.current.push(polyline);
-
-    // Estimate direct distance
-    const distMeters = map.distance(origin, dest);
-    const distanceKm = (distMeters / 1000).toFixed(2);
-    const durationMins = Math.round(distMeters / 1000 * 2.5);
-
-    onRouteCalculated?.({
-      distance: distanceKm,
-      duration: durationMins,
-      originAddress: 'Origen (Trayecto Directo)',
-      destinationAddress: 'Destino (Trayecto Directo)'
-    });
-  };
 
   // Update vehicle position marker and center view when autoFollow is active
   useEffect(() => {
