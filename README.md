@@ -99,27 +99,42 @@ vextor/
 
 ## 5. Instalación y Puesta en Marcha
 
-### 5.1 Requisitos Previos
-- Node.js 20+ y `pnpm`
-- Python 3.12+
-- Servidor PostgreSQL
+Consulta la **[Guía Paso a Paso de Instalación y Despliegue (`GUIA_INSTALACION.md`)](./GUIA_INSTALACION.md)** para obtener instrucciones explícitas y detalladas de configuración de todo el ecosistema.
 
-### 5.2 Configuración del Backend (`vextor_be`)
-```bash
-cd vextor_be
-python -m venv venv
-source venv/bin/activate # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
+### Resumen Rápido de Puesta en Marcha
 
-### 5.3 Configuración del Frontend (`vextor_fe`)
-```bash
-cd vextor_fe
-pnpm install
-pnpm run dev
-```
-La aplicación abrirá en `http://localhost:5173`.
+1. **Base de Datos (PostgreSQL):**
+   ```bash
+   createdb -U postgres vextor_db
+   psql -U postgres -d vextor_db -f vextor_bd/vextor_bd.sql
+   ```
+
+2. **Motor OSRM Propio (Routing):**
+   ```powershell
+   # En Windows (PowerShell):
+   .\setup-osrm.ps1
+
+   # O vía Docker Compose (Linux / macOS):
+   docker compose -f infra/osrm/docker-compose.yml up -d osrm
+   ```
+
+3. **Backend FastAPI (`vextor_be`):**
+   ```bash
+   cd vextor_be
+   python -m venv venv
+   source venv/bin/activate # En Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   uvicorn main:app --reload --port 8000
+   ```
+
+4. **Frontend React 19 (`vextor_fe`):**
+   ```bash
+   cd vextor_fe
+   pnpm install
+   pnpm run dev
+   ```
+
+Accede a la aplicación en `http://localhost:5173`.
 
 ---
 

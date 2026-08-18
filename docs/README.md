@@ -10,6 +10,7 @@ Esta carpeta contiene la documentación detallada del sistema dividida por tópi
 
 | Documento | Descripción |
 | :--- | :--- |
+| [GUIA_INSTALACION.md](../GUIA_INSTALACION.md) | **Guía de Instalación Paso a Paso:** Puesta en marcha completa de PostgreSQL, OSRM propio, Backend y Frontend. |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Arquitectura del sistema, topología de capas (Frontend, API, DB), diagrama de componentes y mapas de dependencias. |
 | [API.md](./API.md) | Especificación completa de los endpoints HTTP/REST y WebSockets de FastAPI, incluyendo payloads, parámetros, respuestas y RBAC. |
 | [DATABASE.md](./DATABASE.md) | Modelo relacional de PostgreSQL, esquemas de tablas, llaves primarias/foráneas, índices, disparadores y datos semilla. |
