@@ -103,11 +103,9 @@ Consulta la **[Guía Paso a Paso de Instalación y Despliegue (`GUIA_INSTALACION
 
 ### Resumen Rápido de Puesta en Marcha
 
-1. **Base de Datos (PostgreSQL):**
-   ```bash
-   createdb -U postgres vextor_db
-   psql -U postgres -d vextor_db -f vextor_bd/vextor_bd.sql
-   ```
+1. **Base de Datos (PostgreSQL en Supabase):**
+   - Crea un proyecto en [Supabase](https://supabase.com/) y ejecuta `vextor_bd/vextor_bd.sql` en el **SQL Editor**.
+   - Configura `DATABASE_URL` en `vextor_be/.env` con tu URI de Supabase (`postgresql+psycopg://...`).
 
 2. **Motor OSRM Propio (Routing):**
    ```powershell

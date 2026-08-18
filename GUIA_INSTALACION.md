@@ -2,7 +2,7 @@
 
 Esta guía explica paso a paso cómo instalar, configurar y poner en marcha todos los componentes del ecosistema **VEXTOR**:
 
-1. 🛢️ **Base de Datos PostgreSQL** (`vextor_bd`)
+1. 🛢️ **Base de Datos PostgreSQL en Supabase** (`vextor_bd`)
 2. 🗺️ **Motor de Enrutamiento OSRM Propio** (`infra/osrm`)
 3. 🐍 **Backend FastAPI** (`vextor_be`)
 4. ⚛️ **Frontend React 19 + Vite** (`vextor_fe`)
@@ -11,51 +11,51 @@ Esta guía explica paso a paso cómo instalar, configurar y poner en marcha todo
 
 ## 📋 1. Requisitos Previos del Sistema
 
-Antes de iniciar, asegúrate de contar con el siguiente software instalado en tu equipo:
+Antes de iniciar, asegúrate de contar con el siguiente software y servicios:
 
-| Herramienta | Versión Mínima Requerida | Propósito |
+| Herramienta / Servicio | Versión / Requisito | Propósito |
 | :--- | :--- | :--- |
 | **Node.js** | v20.0.0+ | Entorno de ejecución para React 19 / Vite |
 | **pnpm** | v9.0.0+ | Gestor de paquetes de Node.js (`npm i -g pnpm`) |
 | **Python** | 3.12+ | Lenguaje de ejecución del servidor backend FastAPI |
-| **PostgreSQL** | 14.0+ (o Supabase) | Sistema de Gestión de Base de Datos Relacional |
+| **Cuenta en Supabase** (o PostgreSQL 14+) | Gratuita / Cloud | Base de datos PostgreSQL alojada |
 | **Docker Desktop / Docker Engine** | v24.0+ | Contenedor para el servidor OSRM propio |
 | **Git** | v2.30+ | Control de versiones |
 
 ---
 
-## 🛢️ 2. Paso 1: Configuración de la Base de Datos PostgreSQL
+## 🛢️ 2. Paso 1: Configuración de la Base de Datos en Supabase
 
-VEXTOR utiliza **PostgreSQL** con identificadores UUID v4 nativos.
+VEXTOR utiliza **PostgreSQL** con identificadores UUID v4 nativos. La base de datos se gestiona fácilmente desde **Supabase**.
 
-### 2.1 Crear la Base de Datos
+### 2.1 Crear el Proyecto en Supabase
 
-Abre una terminal o tu cliente de SQL preferido (pgAdmin, DBeaver, `psql`) y crea una nueva base de datos llamada `vextor_db`:
+1. Inicia sesión en [Supabase](https://supabase.com/).
+2. Haz clic en **New Project**.
+3. Asigna un nombre al proyecto (ej. `vextor-db`) y una contraseña segura para el usuario `postgres`.
+4. Guarda la contraseña en un lugar seguro.
 
-```sql
-CREATE DATABASE vextor_db;
-```
+### 2.2 Ejecutar el Script DDL de Esquema y Datos Semilla
 
-O desde la línea de comandos de PostgreSQL:
+1. En el panel de Supabase, navega a la sección **SQL Editor** (icono de `>/_` en la barra lateral izquierda).
+2. Haz clic en **New Query**.
+3. Abre el archivo `vextor_bd/vextor_bd.sql` en tu editor local, copia todo su contenido y pégalo en el editor SQL de Supabase.
+4. Haz clic en **Run** (o presiona `Ctrl + Enter` / `Cmd + Enter`).
+5. Confirma que la ejecución responda sin errores. Este script creará automáticamente todas las tablas, restricciones de integridad referencial, funciones UUID y los datos semilla (roles predefinidos y usuario administrador inicial).
 
-```bash
-createdb -U postgres vextor_db
-```
+### 2.3 Obtener la Cadena de Conexión (`DATABASE_URL`)
 
-### 2.2 Restaurar el Esquema y Datos Semilla
-
-Ejecuta el script SQL DDL provisto en `vextor_bd/vextor_bd.sql`. Este script creará todas las tablas, restricciones, funciones y los datos semilla indispensables (roles predefinidos y usuario administrador de prueba):
-
-#### En Linux / macOS / Windows (Git Bash o CMD):
-```bash
-psql -U postgres -d vextor_db -f vextor_bd/vextor_bd.sql
-```
-
-#### En pgAdmin / DBeaver / TablePlus:
-1. Abre la conexión a `vextor_db`.
-2. Abre la ventana de consultas SQL (Query Tool).
-3. Copia y pega el contenido entero del archivo `vextor_bd/vextor_bd.sql`.
-4. Presiona **Ejecutar** (F5).
+1. En el panel de Supabase, ve a **Project Settings** (icono de engranaje) -> **Database**.
+2. Desplázate hasta la sección **Connection string**.
+3. Selecciona la pestaña **URI** o **Transaction pooler** (puerto `6543` o `5432`).
+4. Copia la URL provista, que tendrá una estructura similar a:
+   ```text
+   postgresql://postgres.[REF]:[TU_PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+   ```
+5. **Importante:** Para SQLAlchemy con el driver `psycopg3` utilizado en el backend FastAPI, debes anteponer `postgresql+psycopg://` al esquema de la URL:
+   ```env
+   DATABASE_URL=postgresql+psycopg://postgres.xxxxxx:TU_PASSWORD_AQUI@aws-0-us-west-2.pooler.supabase.com:6543/postgres
+   ```
 
 ---
 
@@ -161,8 +161,8 @@ pip install -r requirements.txt
 Crea un archivo `.env` en la carpeta `vextor_be/` (o en la raíz del repositorio, basándote en `.env.example`):
 
 ```env
-# --- BASE DE DATOS POSTGRESQL ---
-DATABASE_URL=postgresql+psycopg://postgres:tu_password@localhost:5432/vextor_db
+# --- BASE DE DATOS SUPABASE / POSTGRESQL ---
+DATABASE_URL=postgresql+psycopg://postgres.xxxxxx:TU_PASSWORD_AQUI@aws-0-us-west-2.pooler.supabase.com:6543/postgres
 
 # --- SEGURIDAD Y JWT ---
 JWT_SECRET_KEY=coloca_aqui_una_clave_secreta_super_segura_y_larga
@@ -220,13 +220,13 @@ La aplicación estará disponible en la URL: **`http://localhost:5173`**
 
 ## 🔄 6. Paso 5: Verificación End-to-End (E2E)
 
-Sigue estos pasos para comprobar que la integración entre Frontend, Backend, Base de Datos y OSRM funciona correctamente:
+Sigue estos pasos para comprobar que la integración entre Frontend, Backend, Supabase y OSRM funciona correctamente:
 
 1. **Abrir el Sistema:**
    Accede a `http://localhost:5173` en tu navegador.
 
 2. **Iniciar Sesión:**
-   Utiliza las credenciales de prueba predeterminadas insertadas por `vextor_bd.sql`:
+   Utiliza las credenciales de prueba predeterminadas insertadas por `vextor_bd.sql` en Supabase:
    - **Correo:** `admin@vextor.com`
    - **Contraseña:** `Admin123!` (o la clave registrada en tus datos semilla)
 
@@ -244,14 +244,13 @@ Sigue estos pasos para comprobar que la integración entre Frontend, Backend, Ba
 
 ## 🛠️ 7. Solución de Problemas Comunes (Troubleshooting)
 
-### ❓ 1. Error de conexión a Base de Datos (`psycopg.OperationalError` / `Connection refused`)
-- Verifica que el servicio de PostgreSQL esté en ejecución.
-- Revisa las credenciales (usuario, contraseña, puerto `5432` y nombre de BD `vextor_db`) en la variable `DATABASE_URL` del archivo `.env`.
+### ❓ 1. Error de conexión a Supabase (`psycopg.OperationalError` / `Connection timed out`)
+- Revisa que tu contraseña de la base de datos de Supabase no tenga caracteres especiales no codificados en la URL, o usa URL encoding (ej. `@` -> `%40`).
+- Confirma que utilizaste el prefijo `postgresql+psycopg://` en la variable `DATABASE_URL` dentro de `.env`.
 
 ### ❓ 2. Error en OSRM (`503 Service Unavailable` o `Cannot connect to OSRM`)
 - Asegúrate de que el contenedor Docker `vextor-osrm` esté activo (`docker ps`).
 - Revisa la URL `OSRM_URL=http://localhost:5000` en `vextor_be/.env`.
-- Si estás corriendo el backend dentro de Docker, usa `http://host.docker.internal:5000` o la IP de la red de Docker.
 
 ### ❓ 3. Problema de CORS al conectar Frontend y Backend
 - Verifica que `FRONTEND_URL` en `vextor_be/.env` coincida exactamente con la URL de Vite (`http://localhost:5173`).
