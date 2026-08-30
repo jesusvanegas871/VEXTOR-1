@@ -11,7 +11,8 @@ from app.database import get_db
 from app.schemas import Actividad, Notificacion, ChangePasswordRequest, SesionUsuarioOut
 from app.models import Actividad as ActividadModel, Notificacion as NotificacionModel, SesionUsuario
 from app.api.routes.auth import get_current_user
-from app.core.security import hash_password, verify_password
+from app.api.routes.crud import require_admin
+from app.core.security import hash_password, verify_password, validate_password_policy
 from app.utils import get_client_ip
 
 router = APIRouter(tags=["Audit & Security"])
@@ -49,7 +50,7 @@ def get_activity(
 def delete_activity(
     id_actividad: UUID,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user = Depends(require_admin),
 ):
     """Elimina una actividad de auditoría"""
     activity = db.query(ActividadModel).filter(
@@ -159,8 +160,17 @@ def change_password(
             detail="La contraseña actual es incorrecta",
         )
     
+    # Validar política de contraseña
+    is_valid, error_msg = validate_password_policy(req.new_password)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_msg,
+        )
+
     # Actualizar contraseña
     current_user.contrasenia_usuario = hash_password(req.new_password)
+    current_user.requiere_cambio_clave = False
     db.commit()
     
     return {"message": "Contraseña actualizada correctamente"}

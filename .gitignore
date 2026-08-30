@@ -17,6 +17,7 @@ vextor_be/.venv/
 __pycache__/
 *.py[cod]
 *.log
+*.db
 
 # Archivos de sistema operativo y editores
 .DS_Store
