@@ -2,6 +2,7 @@
 Pruebas de verificación de correcciones de seguridad
 """
 import pytest
+from uuid import uuid4
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -112,3 +113,47 @@ def test_rate_limiting_login():
     res = client.post("/api/auth/login", json={"email": "wrong@vextor.com", "password": "WrongPassword1!"})
     assert res.status_code == 429
     assert "Demasiados intentos" in res.json()["detail"]
+
+
+def test_audit_delete_requires_admin():
+    """Verifica que la eliminación de bitácora de auditoría requiera rol Administrador"""
+    db = TestingSessionLocal()
+    driver_user = db.query(Usuario).filter(Usuario.correo_usuario == "driver@vextor.com").first()
+    token = create_access_token({"sub": driver_user.correo_usuario, "role": "Conductor"})
+    db.close()
+
+    headers = {"Authorization": f"Bearer {token}"}
+    fake_id = str(uuid4())
+    res = client.delete(f"/api/audit/activity/{fake_id}", headers=headers)
+    assert res.status_code == 403
+    assert "Acceso denegado" in res.json()["detail"]
+
+
+def test_change_password_enforces_policy():
+    """Verifica que el cambio de contraseña rechace claves que no cumplen la política de seguridad"""
+    db = TestingSessionLocal()
+    driver_user = db.query(Usuario).filter(Usuario.correo_usuario == "driver@vextor.com").first()
+    # Mock session for get_current_user
+    from app.models import SesionUsuario
+    session = SesionUsuario(
+        id_sesion=uuid4(),
+        id_usuario=driver_user.id_usuario,
+        ip_origen="127.0.0.1",
+        dispositivo="Test",
+        user_agent="Pytest",
+        estado_sesion="ACTIVA"
+    )
+    db.add(session)
+    db.commit()
+    token = create_access_token({"sub": driver_user.correo_usuario, "role": "Conductor", "sid": str(session.id_sesion)})
+    db.close()
+
+    headers = {"Authorization": f"Bearer {token}"}
+    # Attempting to change to a weak password
+    payload = {
+        "current_password": "Driver123!",
+        "new_password": "weak"
+    }
+    res = client.post("/api/security/change-password", json=payload, headers=headers)
+    assert res.status_code == 400
+    assert "al menos 8 caracteres" in res.json()["detail"]
