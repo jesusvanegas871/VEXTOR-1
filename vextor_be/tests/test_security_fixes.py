@@ -69,12 +69,16 @@ def setup_db():
 
 
 def test_crud_endpoints_require_auth():
-    """Verifica que los endpoints GET sin autenticación sean rechazados con 401"""
+    """Verifica que los endpoints sin autenticación sean rechazados con 401"""
     res = client.get("/api/vehicles")
     assert res.status_code == 401
     res = client.get("/api/drivers")
     assert res.status_code == 401
     res = client.get("/api/routes")
+    assert res.status_code == 401
+    res = client.get("/api/routing/health")
+    assert res.status_code == 401
+    res = client.post("/api/routing/route", json={"origin": {"lat": 4.6, "lng": -74.08}, "destination": {"lat": 4.7, "lng": -74.05}})
     assert res.status_code == 401
 
 

@@ -9,13 +9,17 @@ from app.database import get_db
 from app.schemas import RoutingRouteRequest, RoutingRouteResponse, RoutingHealth
 from app.services.osrm_service import OsrmService
 from app.core.exceptions import OsrmError
+from app.api.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/routing", tags=["Routing"])
 osrm_service = OsrmService()
 
 
 @router.get("/health", response_model=RoutingHealth)
-def health_check(db: Session = Depends(get_db)):
+def health_check(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
     """Verifica que OSRM esté disponible"""
     try:
         if osrm_service.health_check():
@@ -25,15 +29,21 @@ def health_check(db: Session = Depends(get_db)):
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="OSRM no está disponible",
             )
-    except OsrmError as e:
+    except HTTPException:
+        raise
+    except OsrmError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"OSRM error: {str(e)}",
+            detail="Error en el servicio de enrutamiento.",
         )
 
 
 @router.post("/route", response_model=RoutingRouteResponse)
-def calculate_route(req: RoutingRouteRequest, db: Session = Depends(get_db)):
+def calculate_route(
+    req: RoutingRouteRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
     """Calcula una ruta entre dos puntos"""
     try:
         route = osrm_service.calculate_route(
@@ -63,13 +73,13 @@ def calculate_route(req: RoutingRouteRequest, db: Session = Depends(get_db)):
             "geometry": route.get("geometry", {"type": "LineString", "coordinates": []}),
             "instructions": instructions,
         }
-    except OsrmError as e:
+    except OsrmError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Error calculando ruta: {str(e)}",
+            detail="Error en el servicio de enrutamiento.",
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail="Ocurrió un error interno al calcular la ruta.",
         )
