@@ -112,3 +112,13 @@ def test_rate_limiting_login():
     res = client.post("/api/auth/login", json={"email": "wrong@vextor.com", "password": "WrongPassword1!"})
     assert res.status_code == 429
     assert "Demasiados intentos" in res.json()["detail"]
+
+
+def test_security_headers_present():
+    """Verifica que las cabeceras de seguridad HTTP estén presentes en las respuestas"""
+    res = client.get("/")
+    assert res.headers.get("X-Content-Type-Options") == "nosniff"
+    assert res.headers.get("X-Frame-Options") == "DENY"
+    assert res.headers.get("X-XSS-Protection") == "1; mode=block"
+    assert res.headers.get("Strict-Transport-Security") == "max-age=31536000; includeSubDomains"
+    assert res.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
