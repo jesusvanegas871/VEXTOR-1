@@ -37,9 +37,38 @@ const MyRoutes = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE_URL}/api/routes/driver/my-routes`);
-      setData(res.data);
+      const payload = res?.data;
+
+      if (Array.isArray(payload)) {
+        setData({
+          conductor: null,
+          active_route: payload.find((r) => r?.estado_ruta === 'EN_RUTA') || null,
+          assigned_routes: payload.filter((r) => r?.estado_ruta === 'PROGRAMADA') || [],
+          history_routes: payload.filter((r) => r?.estado_ruta === 'COMPLETADA' || r?.estado_ruta === 'SUSPENDIDA' || r?.estado_ruta === 'CANCELADA') || []
+        });
+      } else if (payload && typeof payload === 'object') {
+        setData({
+          conductor: payload.conductor || null,
+          active_route: payload.active_route || null,
+          assigned_routes: Array.isArray(payload.assigned_routes) ? payload.assigned_routes : [],
+          history_routes: Array.isArray(payload.history_routes) ? payload.history_routes : []
+        });
+      } else {
+        setData({
+          conductor: null,
+          active_route: null,
+          assigned_routes: [],
+          history_routes: []
+        });
+      }
     } catch (err) {
       console.error('Error fetching driver routes:', err);
+      setData({
+        conductor: null,
+        active_route: null,
+        assigned_routes: [],
+        history_routes: []
+      });
     } finally {
       setLoading(false);
     }
@@ -113,7 +142,10 @@ const MyRoutes = () => {
     );
   }
 
-  const { conductor, active_route, assigned_routes, history_routes } = data;
+  const conductor = data?.conductor || null;
+  const active_route = data?.active_route || null;
+  const assigned_routes = Array.isArray(data?.assigned_routes) ? data.assigned_routes : [];
+  const history_routes = Array.isArray(data?.history_routes) ? data.history_routes : [];
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
@@ -213,11 +245,11 @@ const MyRoutes = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-v-white flex items-center gap-2">
             <Calendar size={18} className="text-primary" />
-            Próximas Rutas Asignadas ({assigned_routes.length})
+            Próximas Rutas Asignadas ({(assigned_routes || []).length})
           </h2>
         </div>
 
-        {assigned_routes.length === 0 ? (
+        {(!assigned_routes || assigned_routes.length === 0) ? (
           <div className="p-8 text-center bg-v-dark-soft border border-v-dark-border rounded-2xl space-y-3">
             <CheckCircle2 size={40} className="mx-auto text-emerald-400 opacity-60" />
             <h3 className="text-v-white font-bold text-base">¡Todo al día!</h3>
@@ -227,15 +259,15 @@ const MyRoutes = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {assigned_routes.map((route) => (
+            {(assigned_routes || []).map((route) => (
               <div
-                key={route.id_ruta}
+                key={route?.id_ruta || route?.codigo_ruta}
                 className="p-6 bg-v-dark-soft border border-v-dark-border rounded-2xl hover:border-primary/40 transition-all flex flex-col justify-between gap-6 group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-bold text-xs border border-primary/20">
-                      {route.codigo_ruta}
+                      {route?.codigo_ruta}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                       Programada
@@ -243,19 +275,19 @@ const MyRoutes = () => {
                   </div>
 
                   <h3 className="text-base font-bold text-v-white group-hover:text-primary transition-colors">
-                    {route.nombre_ruta}
+                    {route?.nombre_ruta}
                   </h3>
 
                   <div className="space-y-2 text-xs text-v-gray">
                     <div className="flex items-start gap-2">
                       <MapPin size={14} className="text-emerald-400 mt-0.5 shrink-0" />
-                      <span>Origen: <strong className="text-v-white">{route.origen}</strong></span>
+                      <span>Origen: <strong className="text-v-white">{route?.origen}</strong></span>
                     </div>
                     <div className="flex items-start gap-2">
                       <MapPin size={14} className="text-red-400 mt-0.5 shrink-0" />
-                      <span>Destino: <strong className="text-v-white">{route.destino}</strong></span>
+                      <span>Destino: <strong className="text-v-white">{route?.destino}</strong></span>
                     </div>
-                    {route.vehiculo && (
+                    {route?.vehiculo && (
                       <div className="flex items-center gap-2 pt-1 border-t border-v-dark-border/60">
                         <Truck size={14} className="text-primary shrink-0" />
                         <span>Vehículo: <strong className="text-v-white">{route.vehiculo.placa}</strong> ({route.vehiculo.marca})</span>
@@ -267,7 +299,7 @@ const MyRoutes = () => {
                 <div className="pt-3 border-t border-v-dark-border flex items-center justify-between gap-3">
                   <span className="text-[11px] text-v-gray flex items-center gap-1">
                     <Clock size={13} className="text-primary" />
-                    {route.fecha_programada ? new Date(route.fecha_programada).toLocaleString('es-CO') : 'Pendiente'}
+                    {route?.fecha_programada ? new Date(route.fecha_programada).toLocaleString('es-CO') : 'Pendiente'}
                   </span>
 
                   <Button
@@ -291,7 +323,7 @@ const MyRoutes = () => {
           Historial de Rutas Recientes
         </h2>
 
-        {history_routes.length === 0 ? (
+        {(!history_routes || history_routes.length === 0) ? (
           <div className="p-6 text-center bg-v-dark-soft border border-v-dark-border rounded-2xl text-v-gray text-xs">
             Aún no has completado rutas en la plataforma.
           </div>
@@ -309,30 +341,30 @@ const MyRoutes = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-v-dark-border/60 text-v-white">
-                  {history_routes.map((hr) => (
-                    <tr key={hr.id_ruta} className="hover:bg-v-dark/40 transition-colors">
+                  {(history_routes || []).map((hr) => (
+                    <tr key={hr?.id_ruta || hr?.codigo_ruta} className="hover:bg-v-dark/40 transition-colors">
                       <td className="p-4">
-                        <div className="font-bold text-v-white">{hr.nombre_ruta}</div>
-                        <div className="text-[10px] text-primary">{hr.codigo_ruta}</div>
+                        <div className="font-bold text-v-white">{hr?.nombre_ruta}</div>
+                        <div className="text-[10px] text-primary">{hr?.codigo_ruta}</div>
                       </td>
                       <td className="p-4 text-v-gray">
-                        <div><strong className="text-emerald-400">A:</strong> {hr.origen}</div>
-                        <div><strong className="text-red-400">B:</strong> {hr.destino}</div>
+                        <div><strong className="text-emerald-400">A:</strong> {hr?.origen}</div>
+                        <div><strong className="text-red-400">B:</strong> {hr?.destino}</div>
                       </td>
                       <td className="p-4">
-                        {hr.vehiculo ? (
+                        {hr?.vehiculo ? (
                           <span className="font-semibold">{hr.vehiculo.placa}</span>
                         ) : (
                           <span className="text-v-gray">N/A</span>
                         )}
                       </td>
                       <td className="p-4 text-v-gray">
-                        <div>Inició: {hr.hora_inicio_real ? new Date(hr.hora_inicio_real).toLocaleTimeString('es-CO') : '-'}</div>
-                        <div>Finalizó: {hr.hora_fin_real ? new Date(hr.hora_fin_real).toLocaleTimeString('es-CO') : '-'}</div>
+                        <div>Inició: {hr?.hora_inicio_real ? new Date(hr.hora_inicio_real).toLocaleTimeString('es-CO') : '-'}</div>
+                        <div>Finalizó: {hr?.hora_fin_real ? new Date(hr.hora_fin_real).toLocaleTimeString('es-CO') : '-'}</div>
                       </td>
                       <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${hr.estado_ruta === 'COMPLETADA' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-v-gray-dark text-v-gray border-v-dark-border'}`}>
-                          {hr.estado_ruta}
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${hr?.estado_ruta === 'COMPLETADA' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-v-gray-dark text-v-gray border-v-dark-border'}`}>
+                          {hr?.estado_ruta || 'N/A'}
                         </span>
                       </td>
                     </tr>
