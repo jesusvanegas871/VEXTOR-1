@@ -2,7 +2,6 @@
 Pruebas de creación y sincronización de conductores y cuentas de usuario
 """
 import pytest
-import uuid
 from datetime import date
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -21,13 +20,13 @@ def db_session():
     db = TestingSessionLocal()
 
     admin_rol = Rol(nombre_rol="Administrador", descripcion_rol="Admin")
-    cond_rol = Rol(nombre_rol="Conductor", descripcion_rol="Conductor")
-    db.add(admin_rol)
-    db.add(cond_rol)
+    cond_rol = Rol(nombre_rol="rol-conductor", descripcion_rol="Conductor")
+    db.add_all([admin_rol, cond_rol])
     db.commit()
+    db.refresh(admin_rol)
+    db.refresh(cond_rol)
 
     admin_user = Usuario(
-        id_usuario=uuid.uuid4(),
         id_rol=admin_rol.id_rol,
         nombres_usuario="Admin",
         apellidos_usuario="System",
@@ -37,6 +36,7 @@ def db_session():
     )
     db.add(admin_user)
     db.commit()
+    db.refresh(admin_user)
 
     yield db, admin_user
 
