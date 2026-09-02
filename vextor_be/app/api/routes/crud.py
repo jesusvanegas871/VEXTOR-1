@@ -173,7 +173,7 @@ def create_driver(
             id_usuario = existing_user.id_usuario
         else:
             # Obtener rol Conductor
-            rol_conductor = db.query(Rol).filter(Rol.nombre_rol == "rol-conductor").first()
+            rol_conductor = db.query(Rol).filter(Rol.nombre_rol.in_(["Conductor", "rol-conductor"])).first()
             rol_id = rol_conductor.id_rol if rol_conductor else uuid.UUID("11111111-2222-3333-4444-555555555552")
             
             new_user = Usuario(
@@ -193,7 +193,7 @@ def create_driver(
     
     # Si no hay id_usuario ni correo, generar automáticamente
     elif not id_usuario:
-        rol_conductor = db.query(Rol).filter(Rol.nombre_rol == "rol-conductor").first()
+        rol_conductor = db.query(Rol).filter(Rol.nombre_rol.in_(["Conductor", "rol-conductor"])).first()
         rol_id = rol_conductor.id_rol if rol_conductor else uuid.UUID("11111111-2222-3333-4444-555555555552")
         
         email_derived = f"conductor_{driver_data['cedula_conductor']}@vextor.com"

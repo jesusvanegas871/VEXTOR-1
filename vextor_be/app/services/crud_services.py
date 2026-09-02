@@ -4,6 +4,7 @@ Contiene la lógica de negocio para cada entidad
 """
 from uuid import UUID
 from datetime import datetime
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -262,20 +263,79 @@ class RouteService:
 
     @staticmethod
     def get_all(db: Session):
-        routes = db.query(Ruta).all()
-        for r in routes:
-            asig_c = db.query(AsignacionConductor).filter(
-                AsignacionConductor.id_ruta == r.id_ruta
-            ).first()
-            asig_v = db.query(AsignacionVehiculo).filter(
-                AsignacionVehiculo.id_ruta == r.id_ruta
-            ).first()
-            r.id_conductor = asig_c.id_conductor if asig_c else None
-            r.id_vehiculo = asig_v.id_vehiculo if asig_v else None
-            if r.id_conductor:
-                sync_driver_status(r.id_conductor, db)
-            if r.id_vehiculo:
-                sync_vehicle_status(r.id_vehiculo, db)
+        def _parse_uuid(val):
+            if val is None:
+                return None
+            if isinstance(val, UUID):
+                return val
+            try:
+                return UUID(str(val))
+            except Exception:
+                return val
+
+        def _parse_dt(val):
+            if val is None:
+                return None
+            if isinstance(val, datetime):
+                return val
+            if isinstance(val, str):
+                try:
+                    return datetime.fromisoformat(val)
+                except Exception:
+                    pass
+            return val
+
+        sql = text("""
+            SELECT
+                r.id_ruta,
+                r.codigo_ruta,
+                r.nombre_ruta,
+                r.origen,
+                r.destino,
+                r.fecha_programada,
+                r.hora_inicio_real,
+                r.hora_fin_real,
+                r.estado_ruta,
+                r.motivo_suspension,
+                ac.id_conductor,
+                av.id_vehiculo
+            FROM ruta r
+            LEFT JOIN asignacion_conductor ac
+                ON r.id_ruta = ac.id_ruta AND ac.estado_asignacion = 'ACTIVA'
+            LEFT JOIN asignacion_vehiculo av
+                ON r.id_ruta = av.id_ruta AND av.estado_asignacion = 'ACTIVA'
+            ORDER BY r.fecha_programada DESC
+        """)
+
+        results = db.execute(sql).fetchall()
+        routes = []
+        for row in results:
+            m = row._mapping
+            id_cond = _parse_uuid(m["id_conductor"])
+            id_veh = _parse_uuid(m["id_vehiculo"])
+            id_r = _parse_uuid(m["id_ruta"])
+
+            ruta_obj = Ruta(
+                id_ruta=id_r,
+                codigo_ruta=m["codigo_ruta"],
+                nombre_ruta=m["nombre_ruta"],
+                origen=m["origen"],
+                destino=m["destino"],
+                fecha_programada=_parse_dt(m["fecha_programada"]),
+                hora_inicio_real=_parse_dt(m["hora_inicio_real"]),
+                hora_fin_real=_parse_dt(m["hora_fin_real"]),
+                estado_ruta=m["estado_ruta"],
+                motivo_suspension=m["motivo_suspension"],
+            )
+            ruta_obj.id_conductor = id_cond
+            ruta_obj.id_vehiculo = id_veh
+            routes.append(ruta_obj)
+
+            if id_cond:
+                sync_driver_status(id_cond, db)
+            if id_veh:
+                sync_vehicle_status(id_veh, db)
+
         return routes
 
     @staticmethod
