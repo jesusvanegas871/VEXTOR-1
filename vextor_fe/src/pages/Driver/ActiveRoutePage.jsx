@@ -50,7 +50,14 @@ const ActiveRoutePage = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE_URL}/api/routes/driver/my-routes`);
-      const active = res.data.active_route;
+      const payload = res?.data;
+
+      let active = null;
+      if (Array.isArray(payload)) {
+        active = payload.find((r) => r?.estado_ruta === 'EN_RUTA') || null;
+      } else if (payload && typeof payload === 'object') {
+        active = payload.active_route || null;
+      }
 
       if (active) {
         if (!idRuta || active.id_ruta === idRuta) {
@@ -64,6 +71,7 @@ const ActiveRoutePage = () => {
       }
     } catch (err) {
       console.error('Error fetching active route:', err);
+      setActiveRoute(null);
     } finally {
       setLoading(false);
     }
@@ -321,7 +329,7 @@ const ActiveRoutePage = () => {
       )}
 
       {/* HUD Navigation Banner */}
-      {routeMetrics.instructions.length > 0 && (
+      {(routeMetrics?.instructions || []).length > 0 && (
         <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-3.5">
             <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30">
@@ -330,7 +338,7 @@ const ActiveRoutePage = () => {
             <div>
               <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Próxima Indicación</span>
               <p className="text-sm sm:text-base font-extrabold text-v-white">
-                {routeMetrics.instructions[0]?.text || 'Sigue la ruta marcada en el mapa'}
+                {routeMetrics?.instructions?.[0]?.text || 'Sigue la ruta marcada en el mapa'}
               </p>
             </div>
           </div>
@@ -408,7 +416,7 @@ const ActiveRoutePage = () => {
             </div>
 
             {/* Collapsible Turn-by-turn Turn Directions Drawer */}
-            {routeMetrics.instructions.length > 0 && (
+            {(routeMetrics?.instructions || []).length > 0 && (
               <div className="pt-4 border-t border-v-dark-border space-y-3">
                 <button
                   onClick={() => setShowInstructions(!showInstructions)}
@@ -416,17 +424,17 @@ const ActiveRoutePage = () => {
                 >
                   <span className="flex items-center gap-2">
                     <Navigation size={14} className="text-primary" />
-                    Indicaciones del Recorrido ({routeMetrics.instructions.length})
+                    Indicaciones del Recorrido ({(routeMetrics?.instructions || []).length})
                   </span>
                   {showInstructions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
 
                 {showInstructions && (
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar animate-in fade-in duration-200">
-                    {routeMetrics.instructions.map((inst, idx) => (
+                    {(routeMetrics?.instructions || []).map((inst, idx) => (
                       <div key={idx} className="p-3 rounded-xl bg-v-dark/60 border border-v-dark-border text-xs space-y-1">
-                        <p className="text-v-white font-medium">{inst.text}</p>
-                        {inst.distance && (
+                        <p className="text-v-white font-medium">{inst?.text}</p>
+                        {inst?.distance && (
                           <span className="text-[10px] text-v-gray block">
                             En {(inst.distance / 1000).toFixed(1)} km
                           </span>

@@ -21,7 +21,7 @@ def db_session():
     db = TestingSessionLocal()
 
     admin_rol = Rol(nombre_rol="Administrador", descripcion_rol="Admin")
-    cond_rol = Rol(nombre_rol="Conductor", descripcion_rol="Conductor")
+    cond_rol = Rol(nombre_rol="rol-conductor", descripcion_rol="Conductor")
     db.add(admin_rol)
     db.add(cond_rol)
     db.commit()

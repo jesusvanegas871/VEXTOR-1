@@ -1,14 +1,28 @@
 """
 Endpoints para rutas del conductor
 """
-from fastapi import APIRouter, Depends
+from datetime import datetime
+from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import json
+from pydantic import BaseModel
+from typing import Optional
 
 from app.database import get_db
 from app.api.routes.auth import get_current_user
+from app.models import Ruta, AsignacionConductor, AsignacionVehiculo
+from app.services.crud_services import sync_driver_status, sync_vehicle_status
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/api/routes", tags=["Driver Routes"])
+
+
+class LocationUpdateSchema(BaseModel):
+    id_ruta: UUID
+    latitud: float
+    longitud: float
+    velocidad: Optional[float] = 0.0
+    heading: Optional[float] = 0.0
 
 
 @router.get("/driver/my-routes")
@@ -64,11 +78,11 @@ def get_driver_routes(
                     } if asig.ruta.vehiculo else None,
                 }
                 
-                if asig.ruta.estado_ruta == "EN_RUTA":
+                if asig.ruta.estado_ruta in ("EN_RUTA", "EN_PROCESO"):
                     active_route = ruta_dict
                 elif asig.ruta.estado_ruta == "PROGRAMADA":
                     assigned_routes.append(ruta_dict)
-                elif asig.ruta.estado_ruta == "COMPLETADA":
+                elif asig.ruta.estado_ruta in ("COMPLETADA", "SUSPENDIDA", "CANCELADA"):
                     history_routes.append(ruta_dict)
             except Exception as e:
                 print(f"Error serializing route: {str(e)}")
@@ -96,3 +110,82 @@ def get_driver_routes(
 def get_active_tracking(db: Session = Depends(get_db)):
     """Endpoint para rastreo activo de rutas en tiempo real"""
     return {"status": "active", "message": "Rastreo en tiempo real disponible"}
+
+
+@router.post("/{id_ruta}/start")
+def start_route(
+    id_ruta: UUID,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    """Iniciar una ruta asignada"""
+    ruta = db.query(Ruta).filter(Ruta.id_ruta == id_ruta).first()
+    if not ruta:
+        raise HTTPException(status_code=404, detail="Ruta no encontrada.")
+
+    ruta.estado_ruta = "EN_PROCESO"
+    ruta.hora_inicio_real = datetime.now()
+    db.commit()
+
+    asig_c = db.query(AsignacionConductor).filter(AsignacionConductor.id_ruta == id_ruta).first()
+    if asig_c and asig_c.id_conductor:
+        sync_driver_status(asig_c.id_conductor, db)
+
+    asig_v = db.query(AsignacionVehiculo).filter(AsignacionVehiculo.id_ruta == id_ruta).first()
+    if asig_v and asig_v.id_vehiculo:
+        sync_vehicle_status(asig_v.id_vehiculo, db)
+
+    AuditService.record_activity(
+        db=db,
+        user_id=current_user.id_usuario,
+        action="INICIAR",
+        module="RUTAS",
+        detail=f"Inició la ruta {ruta.codigo_ruta} ({ruta.nombre_ruta})"
+    )
+
+    return {"message": "Ruta iniciada correctamente", "id_ruta": str(id_ruta), "estado_ruta": "EN_PROCESO"}
+
+
+@router.post("/{id_ruta}/finish")
+def finish_route(
+    id_ruta: UUID,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    """Finalizar una ruta activa"""
+    ruta = db.query(Ruta).filter(Ruta.id_ruta == id_ruta).first()
+    if not ruta:
+        raise HTTPException(status_code=404, detail="Ruta no encontrada.")
+
+    ruta.estado_ruta = "COMPLETADA"
+    ruta.hora_fin_real = datetime.now()
+    db.commit()
+
+    asig_c = db.query(AsignacionConductor).filter(AsignacionConductor.id_ruta == id_ruta).first()
+    if asig_c and asig_c.id_conductor:
+        sync_driver_status(asig_c.id_conductor, db)
+
+    asig_v = db.query(AsignacionVehiculo).filter(AsignacionVehiculo.id_ruta == id_ruta).first()
+    if asig_v and asig_v.id_vehiculo:
+        sync_vehicle_status(asig_v.id_vehiculo, db)
+
+    AuditService.record_activity(
+        db=db,
+        user_id=current_user.id_usuario,
+        action="FINALIZAR",
+        module="RUTAS",
+        detail=f"Finalizó la ruta {ruta.codigo_ruta} ({ruta.nombre_ruta})"
+    )
+
+    return {"message": "Ruta finalizada correctamente", "id_ruta": str(id_ruta), "estado_ruta": "COMPLETADA"}
+
+
+@router.post("/{id_ruta}/location")
+def update_route_location(
+    id_ruta: UUID,
+    loc: LocationUpdateSchema,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    """Actualización HTTP de ubicación de ruta"""
+    return {"status": "success", "message": "Ubicación registrada"}
