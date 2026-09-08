@@ -99,6 +99,13 @@ export const reportService = {
         } catch {
           // Keep default message
         }
+      } else if (typeof error.response?.data === 'string') {
+        try {
+          const json = JSON.parse(error.response.data);
+          message = json.detail || message;
+        } catch {
+          message = error.response.data || message;
+        }
       } else if (error.response?.data?.detail) {
         message = error.response.data.detail;
       }
