@@ -29,7 +29,7 @@ export const runReportExport = async ({
       await new Promise((r) => setTimeout(r, 250));
     }
 
-    // Call real backend export
+    // Call real backend export with proper snake_case parameter names
     await reportService.exportReport({
       report_type: reportType,
       format: format,

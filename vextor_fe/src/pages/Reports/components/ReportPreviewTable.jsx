@@ -58,6 +58,8 @@ export const ReportPreviewTable = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isAdmin = user?.role === 'Administrador' || user?.rol?.nombre_rol === 'Administrador' || user?.nombre_rol === 'Administrador';
+
   const handleExportClick = (format) => {
     setIsExportMenuOpen(false);
     onExport(reportLabel, activeReport, format);
@@ -98,7 +100,7 @@ export const ReportPreviewTable = ({
                 >
                   <FileText size={15} className="text-red-500" /> Exportar como PDF
                 </button>
-                {user?.role === 'Administrador' && (
+                {isAdmin && (
                   <button
                     type="button"
                     onClick={() => handleExportClick('xlsx')}
