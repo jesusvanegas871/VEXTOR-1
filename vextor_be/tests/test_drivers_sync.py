@@ -22,15 +22,17 @@ def db_session():
 
     admin_rol = db.query(Rol).filter(Rol.nombre_rol == "Administrador").first()
     if not admin_rol:
-        admin_rol = Rol(id_rol=uuid.UUID("11111111-2222-3333-4444-555555555551"), nombre_rol="Administrador", descripcion_rol="Admin")
+        admin_rol = Rol(nombre_rol="Administrador", descripcion_rol="Admin")
         db.add(admin_rol)
 
     cond_rol = db.query(Rol).filter(Rol.nombre_rol == "Conductor").first()
     if not cond_rol:
-        cond_rol = Rol(id_rol=uuid.UUID("11111111-2222-3333-4444-555555555552"), nombre_rol="Conductor", descripcion_rol="Conductor")
+        cond_rol = Rol(nombre_rol="Conductor", descripcion_rol="Conductor")
         db.add(cond_rol)
 
     db.commit()
+    db.refresh(admin_rol)
+    db.refresh(cond_rol)
 
     admin_user = Usuario(
         id_usuario=uuid.uuid4(),
