@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
+import { Badge } from '../../../components/ui/Badge';
 import { cn } from '../../../utils/cn';
 
 const UsersSection = ({
@@ -20,71 +21,70 @@ const UsersSection = ({
   handleSaveUser
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center bg-v-dark/20 p-4 rounded-xl border border-v-dark-border/40">
+    <div className="space-y-6 text-left">
+      <div className="flex justify-between items-center bg-v-dark/20 p-4 rounded-2xl border border-v-dark-border">
         <div>
-          <h4 className="font-bold text-v-white text-sm">Listado General</h4>
-          <p className="text-xs text-v-gray mt-0.5">Colaboradores con acceso activo al software de gestión.</p>
+          <h4 className="font-bold text-v-white text-sm">Gestión de Accesos de Usuarios</h4>
+          <p className="text-xs text-v-gray mt-0.5">Cuentas activas con permisos de administración u operación en la plataforma.</p>
         </div>
-        <Button variant="primary" size="sm" onClick={handleOpenAddUser} className="flex items-center gap-1.5 shrink-0">
+        <Button variant="primary" size="sm" onClick={handleOpenAddUser} className="flex items-center gap-1.5 shrink-0 cursor-pointer">
           <Plus size={16} /> Crear Usuario
         </Button>
       </div>
 
       {/* Users List Table */}
-      <div className="border border-v-dark-border rounded-xl overflow-hidden">
+      <div className="border border-v-dark-border rounded-2xl overflow-hidden shadow-lg bg-v-dark-soft">
         <div className="overflow-x-auto w-full custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[550px]">
             <thead>
-              <tr className="bg-v-dark/40 border-b border-v-dark-border">
-                <th className="p-3 text-xs font-bold uppercase text-v-gray">Nombre</th>
-                <th className="p-3 text-xs font-bold uppercase text-v-gray">Correo Electrónico</th>
-                <th className="p-3 text-xs font-bold uppercase text-v-gray">Rol</th>
-                <th className="p-3 text-xs font-bold uppercase text-v-gray">Estado</th>
-                <th className="p-3 text-xs font-bold uppercase text-v-gray text-right">Acciones</th>
+              <tr className="bg-v-dark/40 border-b border-v-dark-border text-xs font-bold uppercase text-v-gray font-mono tracking-wider">
+                <th className="p-3.5">Nombre</th>
+                <th className="p-3.5">Correo Electrónico</th>
+                <th className="p-3.5">Rol</th>
+                <th className="p-3.5">Estado</th>
+                <th className="p-3.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-v-dark-border">
               {usersList.map((usr) => {
                 const isUserActive = (usr.estado_usuario === 'ACTIVO');
                 return (
-                  <tr key={usr.id_usuario} className="hover:bg-v-dark/10 transition-colors">
-                    <td className="p-3 font-semibold text-v-white text-sm">
+                  <tr key={usr.id_usuario} className="hover:bg-v-dark/20 transition-colors">
+                    <td className="p-3.5 font-bold text-v-white text-sm">
                       {usr.nombres_usuario} {usr.apellidos_usuario}
                     </td>
-                    <td className="p-3 text-v-gray text-sm">{usr.correo_usuario}</td>
-                    <td className="p-3 text-v-white text-sm">
-                      <span className="px-2.5 py-1 bg-v-dark border border-v-dark-border rounded-lg text-xs font-medium text-primary">
+                    <td className="p-3.5 text-v-gray text-xs font-mono">{usr.correo_usuario}</td>
+                    <td className="p-3.5 text-v-white text-sm">
+                      <Badge variant="primary" size="xs">
                         {usr.id_rol === '11111111-2222-3333-4444-555555555551' ? 'Administrador' : 'Conductor'}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="p-3">
+                    <td className="p-3.5">
                       <button
                         type="button"
                         onClick={() => handleUserToggleStatus(usr)}
-                        className={cn(
-                          "text-xs font-bold px-2 py-0.5 rounded-full uppercase border cursor-pointer",
-                          isUserActive
-                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                            : "bg-red-500/10 text-red-500 border-red-500/20"
-                        )}
+                        className="cursor-pointer border-none bg-transparent"
+                        title="Haga clic para cambiar estado"
                       >
-                        {isUserActive ? 'Activo' : 'Inactivo'}
+                        <Badge variant={isUserActive ? 'success' : 'danger'} pulse={isUserActive} size="xs">
+                          {isUserActive ? 'Activo' : 'Inactivo'}
+                        </Badge>
                       </button>
                     </td>
-                    <td className="p-3 text-right">
-                      <div className="flex justify-end gap-1.5">
+                    <td className="p-3.5 text-right">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleOpenEditUser(usr)}
-                          className="p-1 hover:bg-v-dark rounded text-v-gray hover:text-v-white transition-colors text-xs font-medium"
+                          className="px-2.5 py-1 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-lg text-v-gray hover:text-v-white transition-all text-xs font-bold cursor-pointer"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => handleDeleteUser(usr.id_usuario)}
-                          className="p-1 hover:bg-red-500/10 rounded text-red-400 transition-colors"
+                          className="p-1.5 hover:bg-red-500/10 rounded-lg text-v-gray hover:text-red-400 transition-colors cursor-pointer"
+                          title="Eliminar Usuario"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
@@ -106,7 +106,7 @@ const UsersSection = ({
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-v-dark-soft border border-v-dark-border p-6 rounded-2xl w-full max-w-md shadow-2xl space-y-4"
             >
-              <h4 className="text-lg font-bold text-v-white">
+              <h4 className="text-lg font-extrabold text-v-white">
                 {isEditingUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
               </h4>
               <form onSubmit={handleSaveUser} className="space-y-4">
@@ -139,7 +139,7 @@ const UsersSection = ({
                   />
                 )}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-v-gray">Rol del Sistema</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Rol del Sistema</label>
                   <Select
                     value={userForm.id_rol}
                     onChange={(e) => setUserForm({ ...userForm, id_rol: e.target.value })}
@@ -149,7 +149,7 @@ const UsersSection = ({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-v-gray">Estado</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Estado</label>
                   <Select
                     value={userForm.estado_usuario}
                     onChange={(e) => setUserForm({ ...userForm, estado_usuario: e.target.value })}
@@ -159,8 +159,8 @@ const UsersSection = ({
                   </Select>
                 </div>
                 <div className="flex justify-end gap-2.5 pt-2">
-                  <Button type="button" variant="ghost" onClick={() => setUserModalOpen(false)}>Cancelar</Button>
-                  <Button type="submit" variant="primary">Guardar</Button>
+                  <Button type="button" variant="ghost" onClick={() => setUserModalOpen(false)} className="cursor-pointer">Cancelar</Button>
+                  <Button type="submit" variant="primary" className="cursor-pointer">Guardar</Button>
                 </div>
               </form>
             </motion.div>

@@ -8,29 +8,28 @@ import {
   Trash2,
   X,
   AlertTriangle,
-  Info,
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
   Wrench,
-  DollarSign,
   Calendar,
-  Gauge,
-  CheckCircle2,
-  AlertCircle
+  Gauge
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
+import { Badge } from '../../components/ui/Badge';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { maintenanceService } from './services/maintenanceService';
 import { vehicleService } from '../Vehicles/services/vehicleService';
 import { cn } from '../../utils/cn';
 import { useTranslation } from 'react-i18next';
 
 const MAINTENANCE_STATUSES = [
-  { value: 'PROGRAMADO', label: 'Programado', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  { value: 'EN_PROCESO', label: 'En Proceso', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-  { value: 'COMPLETADO', label: 'Completado', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  { value: 'CANCELADO', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20' }
+  { value: 'PROGRAMADO', label: 'Programado', variant: 'info' },
+  { value: 'EN_PROCESO', label: 'En Proceso', variant: 'warning', pulse: true },
+  { value: 'COMPLETADO', label: 'Completado', variant: 'success' },
+  { value: 'CANCELADO', label: 'Cancelado', variant: 'danger' }
 ];
 
 const MAINTENANCE_TYPES = ['PREVENTIVO', 'CORRECTIVO', 'PREDICTIVO'];
@@ -51,7 +50,7 @@ const Maintenance = () => {
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [currentMaintenance, setCurrentMaintenance] = useState(null); // null for Create, maintenance object for Edit
+  const [currentMaintenance, setCurrentMaintenance] = useState(null);
   const [maintenanceToDelete, setMaintenanceToDelete] = useState(null);
 
   // Form state
@@ -71,7 +70,6 @@ const Maintenance = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // Load vehicles and maintenance records
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -90,7 +88,6 @@ const Maintenance = () => {
     loadData();
   }, []);
 
-  // Handle URL query parameters to trigger "Create Maintenance" from Dashboard Quick Action
   useEffect(() => {
     if (searchParams.get('action') === 'new' && vehicles.length > 0) {
       handleOpenCreate();
@@ -98,33 +95,19 @@ const Maintenance = () => {
     }
   }, [searchParams, vehicles]);
 
-  // Form field change handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Form validator
   const validateForm = () => {
     const errors = {};
-
-    if (!formData.id_vehiculo) {
-      errors.id_vehiculo = 'Debe seleccionar un vehículo';
-    }
-
-    if (!formData.descripcion_mantenimiento.trim()) {
-      errors.descripcion_mantenimiento = 'La descripción es obligatoria';
-    }
-
-    if (!formData.fecha_mantenimiento) {
-      errors.fecha_mantenimiento = 'La fecha es obligatoria';
-    }
+    if (!formData.id_vehiculo) errors.id_vehiculo = 'Debe seleccionar un vehículo';
+    if (!formData.descripcion_mantenimiento.trim()) errors.descripcion_mantenimiento = 'La descripción es obligatoria';
+    if (!formData.fecha_mantenimiento) errors.fecha_mantenimiento = 'La fecha es obligatoria';
 
     const costoNum = parseFloat(formData.costo_mantenimiento);
     if (!formData.costo_mantenimiento) {
@@ -143,7 +126,6 @@ const Maintenance = () => {
     return errors;
   };
 
-  // Open Create Form modal
   const handleOpenCreate = () => {
     setCurrentMaintenance(null);
     setFormData({
@@ -160,7 +142,6 @@ const Maintenance = () => {
     setIsFormOpen(true);
   };
 
-  // Open Edit Form modal
   const handleOpenEdit = (maint) => {
     setCurrentMaintenance(maint);
     setFormData({
@@ -177,7 +158,6 @@ const Maintenance = () => {
     setIsFormOpen(true);
   };
 
-  // Submit Form (Create / Edit)
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
@@ -204,14 +184,12 @@ const Maintenance = () => {
     }
   };
 
-  // Open Delete confirmation dialog
   const handleOpenDelete = (maint) => {
     setMaintenanceToDelete(maint);
     setApiError('');
     setIsDeleteOpen(true);
   };
 
-  // Confirm Delete
   const handleConfirmDelete = async () => {
     setIsSubmitLoading(true);
     setApiError('');
@@ -221,18 +199,16 @@ const Maintenance = () => {
       setMaintenanceToDelete(null);
       loadData();
     } catch (err) {
-      setApiError(err.message || 'Error al eliminar el registro de mantenimiento.');
+      setApiError(err.message || 'Error al eliminar el mantenimiento.');
     } finally {
       setIsSubmitLoading(false);
     }
   };
 
-  // Helper to find vehicle info
   const getVehicleInfo = (id_vehiculo) => {
-    return vehicles.find(v => v.id_vehiculo === id_vehiculo) || { placa: 'S/P', marca: 'Desconocido', modelo: 'Desconocido' };
+    return vehicles.find(v => v.id_vehiculo === id_vehiculo) || { placa: 'S/P', marca: 'Desconocido', modelo: '' };
   };
 
-  // Filter & Search Logic
   const filteredMaintenances = maintenances.filter(maint => {
     const vInfo = getVehicleInfo(maint.id_vehiculo);
     const query = search.trim().toLowerCase();
@@ -249,7 +225,6 @@ const Maintenance = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Pagination Logic
   const totalItems = filteredMaintenances.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -264,48 +239,50 @@ const Maintenance = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter, typeFilter]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-v-dark-soft p-6 rounded-2xl border border-v-dark-border">
-        <div>
-          <h2 className="text-2xl font-bold text-v-white">{t('maintenance.title')}</h2>
-          <p className="text-v-gray text-sm mt-0.5">{t('maintenance.subtitle')}</p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={handleOpenCreate}
-          disabled={vehicles.length === 0}
-          className="flex items-center gap-2 self-stretch sm:self-auto shrink-0"
-        >
-          <Plus size={18} /> {t('maintenance.addBtn')}
-        </Button>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title={t('maintenance.title', 'Control de Mantenimiento Preventivo y Taller')}
+        subtitle={t('maintenance.subtitle', 'Programación de órdenes de taller, costos acumulados y alertas mecánicas.')}
+        badge={
+          <Badge variant="warning" pulse size="xs">
+            {maintenances.length} Órdenes
+          </Badge>
+        }
+        actions={
+          <Button
+            variant="primary"
+            onClick={handleOpenCreate}
+            disabled={vehicles.length === 0}
+            className="flex items-center gap-2 w-full sm:w-auto cursor-pointer"
+          >
+            <Plus size={18} /> {t('maintenance.addBtn', 'Agendar Mantenimiento')}
+          </Button>
+        }
+      />
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 bg-v-dark-soft p-4 rounded-xl border border-v-dark-border">
-        {/* Search Input */}
+      <div className="flex flex-col md:flex-row gap-4 bg-v-dark-soft p-4 rounded-2xl border border-v-dark-border shadow-sm">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-v-gray" />
           <input
             type="text"
-            placeholder="Buscar por placa, vehículo o descripción de taller..."
+            placeholder="Buscar por placa, modelo o descripción de taller..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium"
           />
         </div>
 
-        {/* Filters dropdowns */}
         <div className="flex flex-wrap sm:flex-nowrap gap-3">
-          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3 py-1.5 rounded-lg shrink-0">
+          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3.5 py-2 rounded-xl shrink-0">
             <SlidersHorizontal size={15} className="text-v-gray" />
-            <span className="text-v-gray text-xs font-medium">Filtros:</span>
+            <span className="text-v-gray text-xs font-bold uppercase font-mono">Filtros:</span>
           </div>
 
           <Select
@@ -313,7 +290,7 @@ const Maintenance = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-48"
           >
-            <option value="">Todos los estados</option>
+            <option value="">Todos los Estados</option>
             {MAINTENANCE_STATUSES.map(st => (
               <option key={st.value} value={st.value}>{st.label}</option>
             ))}
@@ -324,7 +301,7 @@ const Maintenance = () => {
             onChange={(e) => setTypeFilter(e.target.value)}
             className="w-48"
           >
-            <option value="">Todos los tipos</option>
+            <option value="">Todos los Tipos</option>
             {MAINTENANCE_TYPES.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -332,86 +309,101 @@ const Maintenance = () => {
         </div>
       </div>
 
-      {/* Main Table */}
+      {/* Main Table Content */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
+        <div className="flex flex-col items-center justify-center min-h-[350px] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
           <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-v-gray text-sm">Cargando historial de mantenimientos...</p>
+          <p className="text-v-gray text-sm font-medium">Cargando órdenes de mantenimiento...</p>
         </div>
       ) : filteredMaintenances.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12 text-center">
-          <Info size={40} className="text-v-gray mb-4" />
-          <h3 className="text-lg font-bold text-v-white mb-1">No se encontraron mantenimientos</h3>
-          <p className="text-v-gray text-sm max-w-sm">Intente modificar los filtros o registre una nueva orden de servicio técnico.</p>
-        </div>
+        <EmptyState
+          icon={Wrench}
+          title="No se encontraron mantenimientos"
+          description="No existen órdenes de mantenimiento que coincidan con la búsqueda o filtro seleccionado."
+          action={
+            (search || statusFilter || typeFilter) ? (
+              <Button
+                variant="outline"
+                onClick={() => { setSearch(''); setStatusFilter(''); setTypeFilter(''); }}
+                className="cursor-pointer"
+              >
+                Limpiar Filtros
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={handleOpenCreate}
+                disabled={vehicles.length === 0}
+                className="cursor-pointer"
+              >
+                <Plus size={16} className="mr-1.5" /> Agendar Primera Orden
+              </Button>
+            )
+          }
+        />
       ) : (
         <div className="bg-v-dark-soft border border-v-dark-border rounded-2xl overflow-hidden shadow-xl">
-          {/* Responsive Table Wrapper */}
           <div className="overflow-x-auto w-full custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[650px]">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr className="border-b border-v-dark-border bg-v-dark/40">
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Vehículo</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Tipo</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Descripción del Servicio</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Fecha / Kilometraje</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Costo</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Estado</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider text-right">Acciones</th>
+                <tr className="border-b border-v-dark-border bg-v-dark/40 text-xs font-bold uppercase text-v-gray font-mono tracking-wider">
+                  <th className="p-4">Vehículo</th>
+                  <th className="p-4">Tipo Servicio</th>
+                  <th className="p-4">Detalles Taller</th>
+                  <th className="p-4">Fecha / Kilometraje</th>
+                  <th className="p-4">Costo</th>
+                  <th className="p-4">Estado</th>
+                  <th className="p-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-v-dark-border">
                 {currentItems.map((maint) => {
                   const vInfo = getVehicleInfo(maint.id_vehiculo);
-                  const statusInfo = MAINTENANCE_STATUSES.find(st => st.value === maint.estado_mantenimiento) || { label: maint.estado_mantenimiento, color: 'bg-v-dark border-v-dark-border text-v-white' };
+                  const statusInfo = MAINTENANCE_STATUSES.find(st => st.value === maint.estado_mantenimiento) || { label: maint.estado_mantenimiento, variant: 'neutral' };
                   return (
-                    <tr key={maint.id_mantenimiento} className="hover:bg-v-dark/20 transition-colors group">
+                    <tr key={maint.id_mantenimiento} className="hover:bg-v-dark/30 transition-colors group">
                       <td className="p-4">
-                        <div className="flex flex-col gap-1.5">
-                          <span className="font-mono text-[11px] font-bold px-2 py-0.5 bg-v-dark border border-v-dark-border rounded-md text-primary w-fit">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-mono text-xs font-extrabold px-2.5 py-1 bg-v-dark border border-v-dark-border rounded-lg text-primary w-fit shadow-sm">
                             {vInfo.placa}
                           </span>
-                          <span className="text-v-white text-sm font-semibold">{vInfo.marca} {vInfo.modelo}</span>
+                          <span className="text-v-white text-xs font-bold">{vInfo.marca} {vInfo.modelo}</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className={cn(
-                          "text-[11px] font-bold px-2 py-1 rounded-md border",
-                          maint.tipo_mantenimiento === 'PREVENTIVO' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/10" :
-                          maint.tipo_mantenimiento === 'CORRECTIVO' ? "bg-red-500/10 text-red-500 border-red-500/10" : "bg-blue-500/10 text-blue-500 border-blue-500/10"
-                        )}>
+                        <Badge variant={maint.tipo_mantenimiento === 'PREVENTIVO' ? 'emerald' : maint.tipo_mantenimiento === 'CORRECTIVO' ? 'danger' : 'info'}>
                           {maint.tipo_mantenimiento}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="p-4">
-                        <p className="text-v-white text-sm max-w-xs truncate" title={maint.descripcion_mantenimiento}>
+                        <p className="text-v-white text-sm max-w-xs truncate font-medium" title={maint.descripcion_mantenimiento}>
                           {maint.descripcion_mantenimiento}
                         </p>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm">{maint.fecha_mantenimiento}</div>
-                        <div className="text-v-gray text-xs mt-0.5">{maint.kilometraje_mantenimiento.toLocaleString()} km</div>
+                        <div className="text-v-white text-xs font-bold font-mono">{maint.fecha_mantenimiento}</div>
+                        <div className="text-v-gray text-[11px] font-mono mt-0.5">{maint.kilometraje_mantenimiento.toLocaleString()} km</div>
                       </td>
-                      <td className="p-4 font-mono font-semibold text-v-white text-sm">
-                        ${maint.costo_mantenimiento.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP
+                      <td className="p-4 font-mono font-extrabold text-v-white text-sm">
+                        ${maint.costo_mantenimiento.toLocaleString('es-CO')} <span className="text-[10px] text-v-gray font-normal font-sans">COP</span>
                       </td>
                       <td className="p-4">
-                        <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border", statusInfo.color)}>
+                        <Badge variant={statusInfo.variant} pulse={statusInfo.pulse}>
                           {statusInfo.label}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleOpenEdit(maint)}
-                            className="p-1.5 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-lg text-v-gray hover:text-v-white transition-all duration-200"
+                            className="p-2 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-xl text-v-gray hover:text-v-white transition-all cursor-pointer"
                             title="Editar Orden"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() => handleOpenDelete(maint)}
-                            className="p-1.5 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg text-v-gray hover:text-red-400 transition-all duration-200"
+                            className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl text-v-gray hover:text-red-400 transition-all cursor-pointer"
                             title="Eliminar Orden"
                           >
                             <Trash2 size={16} />
@@ -425,27 +417,26 @@ const Maintenance = () => {
             </table>
           </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/20 text-sm text-center sm:text-left">
-              <span className="text-v-gray">
-                Mostrando <span className="font-bold text-v-white">{indexOfFirstItem + 1}</span> - <span className="font-bold text-v-white">{Math.min(indexOfLastItem, totalItems)}</span> de <span className="font-bold text-v-white">{totalItems}</span> órdenes
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/30 text-xs text-v-gray font-medium">
+              <span>
+                Mostrando <strong className="text-v-white">{indexOfFirstItem + 1}</strong> - <strong className="text-v-white">{Math.min(indexOfLastItem, totalItems)}</strong> de <strong className="text-v-white">{totalItems}</strong> órdenes
               </span>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="flex items-center px-3 font-semibold text-v-white">
-                  Pág. {currentPage} de {totalPages}
+                <span className="px-3 font-bold text-v-white font-mono">
+                  {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -455,10 +446,10 @@ const Maintenance = () => {
         </div>
       )}
 
-      {/* CREATE & EDIT FORM MODAL */}
+      {/* CREATE & EDIT MODAL */}
       <AnimatePresence>
         {isFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -470,58 +461,53 @@ const Maintenance = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 1, y: 0 }}
-              className="relative w-full max-w-2xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10"
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-2xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10 text-left"
             >
-              {/* Modal Header */}
-              <div className="flex justify-between items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-v-dark-border bg-v-dark/20">
+              <div className="flex justify-between items-center px-6 py-5 border-b border-v-dark-border bg-v-dark/20">
                 <div>
-                  <h3 className="text-xl font-bold text-v-white">
-                    {currentMaintenance ? 'Editar Registro de Mantenimiento' : 'Agendar Nuevo Mantenimiento'}
+                  <h3 className="text-xl font-extrabold text-v-white">
+                    {currentMaintenance ? 'Editar Orden de Mantenimiento' : 'Agendar Nuevo Mantenimiento'}
                   </h3>
                   <p className="text-xs text-v-gray mt-0.5">
-                    {currentMaintenance ? 'Modifique la orden de taller.' : 'Asigne un servicio técnico a un vehículo de la flota.'}
+                    {currentMaintenance ? 'Actualice la orden de taller.' : 'Agende un servicio mecánico preventivo o correctivo.'}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsFormOpen(false)}
-                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-lg transition-colors"
+                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-xl transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Modal Form */}
-              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 custom-scrollbar text-left">
+              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
                 {apiError && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start gap-2.5">
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold flex items-start gap-2.5">
                     <AlertTriangle className="shrink-0 mt-0.5" size={16} />
                     <span>{apiError}</span>
                   </div>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Select Vehículo */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Vehículo de la Flota</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Vehículo</label>
                     <Select
                       name="id_vehiculo"
                       value={formData.id_vehiculo}
                       onChange={handleInputChange}
-                      disabled={!!currentMaintenance} // Immutable in standard repair orders
+                      disabled={!!currentMaintenance}
                     >
                       {vehicles.map(v => (
                         <option key={v.id_vehiculo} value={v.id_vehiculo}>
-                          {v.placa} — {v.marca} {v.modelo} (Km: {v.kilometraje_actual.toLocaleString()})
+                          {v.placa} — {v.marca} {v.modelo}
                         </option>
                       ))}
                     </Select>
-                    {formErrors.id_vehiculo && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.id_vehiculo}</p>}
                   </div>
 
-                  {/* Tipo Mantenimiento */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Tipo de Servicio</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Tipo Mantenimiento</label>
                     <Select
                       name="tipo_mantenimiento"
                       value={formData.tipo_mantenimiento}
@@ -534,87 +520,70 @@ const Maintenance = () => {
                   </div>
                 </div>
 
-                {/* Descripción del taller */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-v-gray">Detalle de las reparaciones / observaciones de taller</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Observaciones / Taller</label>
                   <textarea
                     name="descripcion_mantenimiento"
                     rows="3"
-                    placeholder="Escriba los desperfectos, repuestos a cambiar, o detalles del chequeo..."
+                    placeholder="Detalle los servicios requeridos, repuestos a cambiar..."
                     value={formData.descripcion_mantenimiento}
                     onChange={handleInputChange}
                     className={cn(
-                      "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all resize-none custom-scrollbar",
-                      formErrors.descripcion_mantenimiento ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                      "w-full bg-v-dark border focus:border-primary text-v-white text-sm p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all resize-none custom-scrollbar font-medium",
+                      formErrors.descripcion_mantenimiento ? "border-red-500" : "border-v-dark-border"
                     )}
                   />
-                  {formErrors.descripcion_mantenimiento && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.descripcion_mantenimiento}</p>}
+                  {formErrors.descripcion_mantenimiento && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.descripcion_mantenimiento}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Fecha */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Fecha Programada</label>
-                    <div className="relative">
-                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray z-10" />
-                      <input
-                        type="date"
-                        name="fecha_mantenimiento"
-                        value={formData.fecha_mantenimiento}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.fecha_mantenimiento ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.fecha_mantenimiento && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.fecha_mantenimiento}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Fecha</label>
+                    <input
+                      type="date"
+                      name="fecha_mantenimiento"
+                      value={formData.fecha_mantenimiento}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.fecha_mantenimiento ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
                   </div>
 
-                  {/* Kilometraje registrado */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Kilometraje Orden (km)</label>
-                    <div className="relative">
-                      <Gauge size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="number"
-                        name="kilometraje_mantenimiento"
-                        placeholder="Ej. 12000"
-                        value={formData.kilometraje_mantenimiento}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.kilometraje_mantenimiento ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.kilometraje_mantenimiento && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.kilometraje_mantenimiento}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Kilometraje Orden</label>
+                    <input
+                      type="number"
+                      name="kilometraje_mantenimiento"
+                      placeholder="12000"
+                      value={formData.kilometraje_mantenimiento}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.kilometraje_mantenimiento ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
                   </div>
 
-                  {/* Costo */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Costo Estimado (COP)</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray font-bold text-xs">$</span>
-                      <input
-                        type="number"
-                        name="costo_mantenimiento"
-                        placeholder="Ej. 150000"
-                        value={formData.costo_mantenimiento}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-8 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.costo_mantenimiento ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.costo_mantenimiento && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.costo_mantenimiento}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Costo (COP)</label>
+                    <input
+                      type="number"
+                      name="costo_mantenimiento"
+                      placeholder="150000"
+                      value={formData.costo_mantenimiento}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.costo_mantenimiento ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
                   </div>
                 </div>
 
-                {/* Estado Mantenimiento */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-v-gray">Estado del Servicio</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Estado Mantenimiento</label>
                   <Select
                     name="estado_mantenimiento"
                     value={formData.estado_mantenimiento}
@@ -626,21 +595,11 @@ const Maintenance = () => {
                   </Select>
                 </div>
 
-                {/* Modal Footer */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border bg-v-dark-soft">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setIsFormOpen(false)}
-                    disabled={isSubmitLoading}
-                  >
+                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border">
+                  <Button type="button" variant="ghost" onClick={() => setIsFormOpen(false)} disabled={isSubmitLoading} className="cursor-pointer">
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    isLoading={isSubmitLoading}
-                  >
+                  <Button type="submit" variant="primary" isLoading={isSubmitLoading} className="cursor-pointer">
                     {currentMaintenance ? 'Guardar Cambios' : 'Agendar'}
                   </Button>
                 </div>
@@ -666,42 +625,38 @@ const Maintenance = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6"
+              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6 text-left"
             >
               <div className="flex gap-4">
-                <div className="h-12 w-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center shrink-0">
                   <AlertTriangle size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-v-white">¿Confirmar eliminación?</h3>
-                  <p className="text-sm text-v-gray mt-1.5 leading-relaxed">
-                    Está a punto de eliminar el registro de mantenimiento del vehículo con placa <strong className="text-v-white font-semibold font-mono">{getVehicleInfo(maintenanceToDelete?.id_vehiculo).placa}</strong> ({maintenanceToDelete?.tipo_mantenimiento}). Esta acción es irreversible y afectará los históricos del taller.
+                  <h3 className="text-lg font-bold text-v-white">¿Confirmar cancelación de orden?</h3>
+                  <p className="text-xs text-v-gray mt-1.5 leading-relaxed">
+                    Está a punto de eliminar la orden de taller para la unidad <strong className="text-v-white font-mono">{getVehicleInfo(maintenanceToDelete?.id_vehiculo).placa}</strong>.
                   </p>
                 </div>
               </div>
 
               {apiError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs flex items-start gap-2">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold flex items-start gap-2">
                   <AlertTriangle className="shrink-0 mt-0.5" size={14} />
                   <span>{apiError}</span>
                 </div>
               )}
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsDeleteOpen(false)}
-                  disabled={isSubmitLoading}
-                >
+                <Button variant="ghost" onClick={() => setIsDeleteOpen(false)} disabled={isSubmitLoading} className="cursor-pointer">
                   Cancelar
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleConfirmDelete}
                   isLoading={isSubmitLoading}
-                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-v-white border-red-500/20 shadow-none hover:shadow-lg hover:shadow-red-500/10"
+                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border-red-500/20 cursor-pointer"
                 >
-                  Sí, eliminar
+                  Confirmar Eliminar
                 </Button>
               </div>
             </motion.div>
