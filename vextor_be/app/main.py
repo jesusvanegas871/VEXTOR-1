@@ -88,7 +88,7 @@ app.include_router(routing.router)
 app.include_router(audit.router)
 
 # Reports
-app.include_router(reports.router)
+app.include_router(reports.router, prefix="/api/reports")
 
 
 # ========== WEBSOCKET ENDPOINTS ==========

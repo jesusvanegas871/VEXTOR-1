@@ -25,7 +25,7 @@ class LogReportRequest(BaseModel):
     format: str
 
 
-@router.post("/api/reports/log")
+@router.post("/log")
 def log_report_generation(
     req: LogReportRequest,
     db: Session = Depends(get_db),
@@ -45,7 +45,7 @@ def log_report_generation(
     return {"status": "success"}
 
 
-@router.get("/api/reports/data")
+@router.get("/data")
 def get_report_data(
     report_type: str = Query(..., description="Tipo de reporte: vehicles, drivers, routes, maintenances, day, week, month, general"),
     status: Optional[str] = None,
@@ -69,7 +69,7 @@ def get_report_data(
         raise HTTPException(status_code=400, detail=f"Error procesando datos del reporte: {str(e)}")
 
 
-@router.get("/api/reports/export")
+@router.get("/export")
 def export_report_file(
     report_type: str = Query("general"),
     format: str = Query("csv"),

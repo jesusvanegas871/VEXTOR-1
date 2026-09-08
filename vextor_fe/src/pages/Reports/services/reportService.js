@@ -46,9 +46,27 @@ export const reportService = {
       const { report_type = 'general', format = 'pdf' } = params;
       const url = `${API_URL}/export`;
 
+      // Normalize params to snake_case for backend compatibility
+      const normalizedParams = {
+        report_type: params.report_type || 'general',
+        format: params.format || 'pdf',
+        status: params.status,
+        search: params.search,
+        date_start: params.date_start,
+        date_end: params.date_end,
+        type_filter: params.type_filter
+      };
+
+      // Remove undefined/empty values to avoid query string pollution
+      Object.keys(normalizedParams).forEach(key => {
+        if (normalizedParams[key] === undefined || normalizedParams[key] === null || normalizedParams[key] === '') {
+          delete normalizedParams[key];
+        }
+      });
+
       if (format === 'pdf') {
         const response = await axios.get(url, {
-          params,
+          params: normalizedParams,
           responseType: 'text',
           withCredentials: true
         });
@@ -72,7 +90,7 @@ export const reportService = {
       } else {
         // CSV or Excel binary download
         const response = await axios.get(url, {
-          params,
+          params: normalizedParams,
           responseType: 'blob',
           withCredentials: true
         });
