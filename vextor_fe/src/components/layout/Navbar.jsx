@@ -1,8 +1,9 @@
-import { Search, Menu } from 'lucide-react';
+import { Menu, Activity } from 'lucide-react';
 import UserMenu from './UserMenu';
 import NotificationButton from './NotificationButton';
 import { useLocation } from 'react-router-dom';
 import { Logo } from '../ui/Logo';
+import { Badge } from '../ui/Badge';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { useTranslation } from 'react-i18next';
 import NavbarSearch from './NavbarSearch';
@@ -11,17 +12,9 @@ import NavbarSearch from './NavbarSearch';
  * Navbar Component
  *
  * Responsabilidad:
- * Mostrar la navegación superior y controles globales del panel de control.
- *
- * Utilizado en:
- * * DashboardLayout
- *
- * Funcionalidades:
- * * Branding de la plataforma (Logo) visible en móviles.
- * * Título dinámico basado en la ruta actual.
- * * Buscador global (placeholder).
- * * Notificaciones y Menú de Usuario.
- * * Botón de menú hamburguesa para móviles.
+ * Header superior de la plataforma B2B VEXTOR.
+ * Muestra el título contextual del módulo, el buscador global,
+ * el indicador de conectividad en tiempo real y controles de usuario.
  */
 const Navbar = ({ onMenuClick }) => {
   const location = useLocation();
@@ -30,27 +23,28 @@ const Navbar = ({ onMenuClick }) => {
   const getPageTitle = () => {
     const path = location.pathname;
     switch(path) {
-      case '/dashboard': return t('sidebar.dashboard');
-      case '/vehicles': return t('sidebar.vehicles');
-      case '/drivers': return t('sidebar.drivers');
-      case '/routes': return t('sidebar.routes');
-      case '/maintenance': return t('sidebar.maintenance');
-      case '/reports': return t('sidebar.reports');
-      case '/settings': return t('sidebar.settings');
-      default: return 'Vextor';
+      case '/dashboard': return t('sidebar.dashboard', 'Centro de Control');
+      case '/vehicles': return t('sidebar.vehicles', 'Gestión de Vehículos');
+      case '/drivers': return t('sidebar.drivers', 'Gestión de Conductores');
+      case '/routes': return t('sidebar.routes', 'Monitoreo de Rutas');
+      case '/maintenance': return t('sidebar.maintenance', 'Control de Mantenimiento');
+      case '/reports': return t('sidebar.reports', 'Centro de Reportes');
+      case '/settings': return t('sidebar.settings', 'Configuración de Sistema');
+      default: return 'VEXTOR Fleet Platform';
     }
   };
 
   return (
-    <header className="h-20 bg-v-dark/50 backdrop-blur-md border-b border-v-dark-border sticky top-0 z-30 px-3.5 sm:px-6">
-      <div className="h-full flex items-center justify-between">
+    <header className="h-20 bg-v-dark-soft/80 backdrop-blur-md border-b border-v-dark-border sticky top-0 z-30 px-3.5 sm:px-6 shadow-sm">
+      <div className="h-full flex items-center justify-between gap-4">
+        {/* Left Section: Mobile Menu + Logo + Page Title */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <button
             onClick={onMenuClick}
-            className="p-2 rounded-lg hover:bg-v-dark-border text-v-gray hover:text-v-white lg:hidden shrink-0 cursor-pointer"
-            aria-label="Abrir Menú"
+            className="p-2 rounded-xl hover:bg-v-dark-border/60 text-v-gray hover:text-v-white lg:hidden shrink-0 cursor-pointer transition-colors"
+            aria-label="Abrir Menú Navegación"
           >
-            <Menu size={20} />
+            <Menu size={22} />
           </button>
 
           <div className="lg:hidden shrink-0">
@@ -63,18 +57,28 @@ const Navbar = ({ onMenuClick }) => {
 
           <div className="hidden lg:block w-px h-6 bg-v-dark-border mx-1 shrink-0" />
 
-          <h1 className="text-sm sm:text-xl font-bold text-v-white truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
-            {getPageTitle()}
-          </h1>
+          <div className="min-w-0 flex items-center gap-3">
+            <h1 className="text-base sm:text-xl font-extrabold text-v-white truncate tracking-tight">
+              {getPageTitle()}
+            </h1>
+            <div className="hidden xl:block shrink-0">
+              <Badge variant="success" size="xs" pulse className="font-mono text-[10px]">
+                En Línea
+              </Badge>
+            </div>
+          </div>
         </div>
 
-        {/* Global Search */}
-        <NavbarSearch />
+        {/* Global Search Center */}
+        <div className="flex-1 max-w-md mx-4 hidden md:block">
+          <NavbarSearch />
+        </div>
 
+        {/* Right Section: Theme Toggle + Notifications + User Menu */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <ThemeToggle />
           <NotificationButton />
-          <div className="w-px h-8 bg-v-dark-border mx-1 hidden sm:block" />
+          <div className="w-px h-7 bg-v-dark-border mx-1 hidden sm:block" />
           <UserMenu />
         </div>
       </div>
@@ -83,4 +87,3 @@ const Navbar = ({ onMenuClick }) => {
 };
 
 export default Navbar;
-  

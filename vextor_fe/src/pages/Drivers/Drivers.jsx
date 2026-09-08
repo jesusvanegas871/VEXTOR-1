@@ -8,7 +8,7 @@ import {
   Trash2,
   X,
   AlertTriangle,
-  Info,
+  Users,
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
@@ -24,6 +24,9 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
+import { Badge } from '../../components/ui/Badge';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { driverService } from './services/driverService';
 import { routeService } from '../Routes/services/routeService';
 import MapComponent from '../Routes/components/MapComponent';
@@ -31,12 +34,12 @@ import { cn } from '../../utils/cn';
 import { useTranslation } from 'react-i18next';
 
 const DRIVER_STATUSES = [
-  { value: 'DISPONIBLE', label: 'Disponible', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { value: 'EN_RUTA', label: 'En Ruta', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  { value: 'NO_DISPONIBLE', label: 'No Disponible', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-  { value: 'ACTIVO', label: 'Activo', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { value: 'INACTIVO', label: 'Inactivo', color: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  { value: 'SUSPENDIDO', label: 'Suspendido', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' }
+  { value: 'DISPONIBLE', label: 'Disponible', variant: 'success' },
+  { value: 'EN_RUTA', label: 'En Ruta', variant: 'info', pulse: true },
+  { value: 'NO_DISPONIBLE', label: 'No Disponible', variant: 'neutral' },
+  { value: 'ACTIVO', label: 'Activo', variant: 'success' },
+  { value: 'INACTIVO', label: 'Inactivo', variant: 'danger' },
+  { value: 'SUSPENDIDO', label: 'Suspendido', variant: 'warning' }
 ];
 
 const LICENSE_TYPES = ['A1', 'A2', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3'];
@@ -62,13 +65,12 @@ const Drivers = () => {
   const [trackingData, setTrackingData] = useState(null);
   const [isTrackingLoading, setIsTrackingLoading] = useState(false);
 
-  // Form state - ACTUALIZADO CON correo_conductor
   const [formData, setFormData] = useState({
     nombre_conductor: '',
     apellido_conductor: '',
     cedula_conductor: '',
     telefono_conductor: '',
-    correo_conductor: '', // NUEVO
+    correo_conductor: '',
     licencia: 'C2',
     estado_conductor: 'DISPONIBLE',
     fecha_ingreso: ''
@@ -80,7 +82,6 @@ const Drivers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // Load drivers from API
   const loadDrivers = async () => {
     setIsLoading(true);
     try {
@@ -104,48 +105,26 @@ const Drivers = () => {
     }
   }, [searchParams, drivers]);
 
-  // Form field change handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Form validator - ACTUALIZADO CON validación de correo
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.nombre_conductor.trim()) {
-      errors.nombre_conductor = 'El nombre es obligatorio';
-    } else if (formData.nombre_conductor.length > 100) {
-      errors.nombre_conductor = 'Máximo 100 caracteres';
-    }
-
-    if (!formData.apellido_conductor.trim()) {
-      errors.apellido_conductor = 'El apellido es obligatorio';
-    } else if (formData.apellido_conductor.length > 100) {
-      errors.apellido_conductor = 'Máximo 100 caracteres';
-    }
+    if (!formData.nombre_conductor.trim()) errors.nombre_conductor = 'El nombre es obligatorio';
+    if (!formData.apellido_conductor.trim()) errors.apellido_conductor = 'El apellido es obligatorio';
 
     if (!formData.cedula_conductor.trim()) {
       errors.cedula_conductor = 'La cédula es obligatoria';
     } else if (!/^[0-9]{3,20}$/.test(formData.cedula_conductor.trim())) {
-      errors.cedula_conductor = 'Debe tener entre 3 y 20 dígitos (numéricos únicamente)';
+      errors.cedula_conductor = 'Debe tener entre 3 y 20 dígitos numéricos';
     }
 
-    if (formData.telefono_conductor) {
-      const cleanPhone = formData.telefono_conductor.replace(/\s+/g, '');
-      if (!/^(\+57|57)?3[0-9]{9}$/.test(cleanPhone)) {
-        errors.telefono_conductor = 'Formato de celular colombiano inválido. Debe comenzar con 3 (ej. 3123456789 o +573123456789).';
-      }
-    }
-
-    // Validar correo electrónico
     if (formData.correo_conductor && formData.correo_conductor.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.correo_conductor.trim())) {
@@ -153,18 +132,11 @@ const Drivers = () => {
       }
     }
 
-    if (!formData.fecha_ingreso) {
-      errors.fecha_ingreso = 'La fecha de ingreso es obligatoria';
-    }
-
-    if (currentDriver && currentDriver.estado_conductor === 'EN_RUTA' && (formData.estado_conductor === 'DISPONIBLE' || formData.estado_conductor === 'ACTIVO')) {
-      errors.estado_conductor = 'No se puede cambiar a DISPONIBLE mientras el conductor tenga una ruta activa.';
-    }
+    if (!formData.fecha_ingreso) errors.fecha_ingreso = 'La fecha de ingreso es obligatoria';
 
     return errors;
   };
 
-  // Open Create Form modal
   const handleOpenCreate = () => {
     setCurrentDriver(null);
     setFormData({
@@ -182,7 +154,6 @@ const Drivers = () => {
     setIsFormOpen(true);
   };
 
-  // Open Edit Form modal
   const handleOpenEdit = (driver) => {
     setCurrentDriver(driver);
     setFormData({
@@ -200,7 +171,6 @@ const Drivers = () => {
     setIsFormOpen(true);
   };
 
-  // Submit Form (Create / Edit)
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
@@ -227,7 +197,6 @@ const Drivers = () => {
     }
   };
 
-  // Open Driver Tracking modal
   const handleOpenTracking = async (driver) => {
     setTrackingDriver(driver);
     setTrackingData(null);
@@ -240,9 +209,7 @@ const Drivers = () => {
         const found = activeTrackings.find(
           tr => tr.conductor?.id_conductor === driver.id_conductor || tr.conductor?.cedula === driver.cedula_conductor
         );
-        if (found) {
-          setTrackingData(found);
-        }
+        if (found) setTrackingData(found);
       }
     } catch (err) {
       console.warn('Error loading driver tracking data:', err);
@@ -251,14 +218,12 @@ const Drivers = () => {
     }
   };
 
-  // Open Delete confirmation dialog
   const handleOpenDelete = (driver) => {
     setDriverToDelete(driver);
     setApiError('');
     setIsDeleteOpen(true);
   };
 
-  // Confirm Delete
   const handleConfirmDelete = async () => {
     setIsSubmitLoading(true);
     setApiError('');
@@ -274,7 +239,6 @@ const Drivers = () => {
     }
   };
 
-  // Filter & Search Logic
   const filteredDrivers = drivers.filter(driver => {
     const query = search.trim().toLowerCase();
     const matchesSearch =
@@ -285,11 +249,9 @@ const Drivers = () => {
       (driver.correo_conductor && driver.correo_conductor.toLowerCase().includes(query));
 
     const matchesStatus = statusFilter ? driver.estado_conductor === statusFilter : true;
-
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination Logic
   const totalItems = filteredDrivers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -310,46 +272,51 @@ const Drivers = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-v-dark-soft p-6 rounded-2xl border border-v-dark-border">
-        <div>
-          <h2 className="text-2xl font-bold text-v-white">{t('drivers.title')}</h2>
-          <p className="text-v-gray text-sm mt-0.5">{t('drivers.subtitle')}</p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 self-stretch sm:self-auto shrink-0"
-        >
-          <Plus size={18} /> {t('drivers.addBtn')}
-        </Button>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title={t('drivers.title', 'Gestión de Conductores')}
+        subtitle={t('drivers.subtitle', 'Control del personal de conducción, licencias, datos de contacto y estado operativo.')}
+        badge={
+          <Badge variant="emerald" pulse size="xs">
+            {drivers.length} Operadores
+          </Badge>
+        }
+        actions={
+          <Button
+            variant="primary"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 w-full sm:w-auto cursor-pointer"
+          >
+            <Plus size={18} /> {t('drivers.addBtn', 'Registrar Conductor')}
+          </Button>
+        }
+      />
 
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-v-dark-soft p-4 rounded-xl border border-v-dark-border">
+      <div className="flex flex-col sm:flex-row gap-4 bg-v-dark-soft p-4 rounded-2xl border border-v-dark-border shadow-sm">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-v-gray" />
           <input
             type="text"
-            placeholder={t('drivers.placeholderSearch')}
+            placeholder={t('drivers.placeholderSearch', 'Buscar por nombre, cédula o correo...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium"
           />
         </div>
 
         <div className="flex gap-3">
-          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3 py-1.5 rounded-lg shrink-0">
+          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3.5 py-2 rounded-xl shrink-0">
             <SlidersHorizontal size={15} className="text-v-gray" />
-            <span className="text-v-gray text-xs font-medium">{t('reports.filters.status')}:</span>
+            <span className="text-v-gray text-xs font-bold uppercase font-mono">Estado:</span>
           </div>
 
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-40"
+            className="w-48"
           >
-            <option value="">{t('drivers.filterAll')}</option>
+            <option value="">Todos los Estados</option>
             {DRIVER_STATUSES.map(st => (
               <option key={st.value} value={st.value}>{st.label}</option>
             ))}
@@ -357,86 +324,106 @@ const Drivers = () => {
         </div>
       </div>
 
-      {/* Main Table */}
+      {/* Main Table Content */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
+        <div className="flex flex-col items-center justify-center min-h-[350px] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
           <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-v-gray text-sm">Cargando personal de conducción...</p>
+          <p className="text-v-gray text-sm font-medium">Cargando personal de conducción...</p>
         </div>
       ) : filteredDrivers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12 text-center">
-          <Info size={40} className="text-v-gray mb-4" />
-          <h3 className="text-lg font-bold text-v-white mb-1">No se encontraron conductores</h3>
-          <p className="text-v-gray text-sm max-w-sm">Intente modificar los filtros o el término de búsqueda ingresado.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No se encontraron conductores"
+          description="No existen registros de conductores que coincidan con la búsqueda o filtro seleccionado."
+          action={
+            (search || statusFilter) ? (
+              <Button
+                variant="outline"
+                onClick={() => { setSearch(''); setStatusFilter(''); }}
+                className="cursor-pointer"
+              >
+                Limpiar Filtros
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={handleOpenCreate}
+                className="cursor-pointer"
+              >
+                <Plus size={16} className="mr-1.5" /> Registrar Primer Conductor
+              </Button>
+            )
+          }
+        />
       ) : (
         <div className="bg-v-dark-soft border border-v-dark-border rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto w-full custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-162.5">
+            <table className="w-full text-left border-collapse min-w-[650px]">
               <thead>
-                <tr className="border-b border-v-dark-border bg-v-dark/40">
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Cédula</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Conductor</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Correo / Teléfono</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Licencia</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Fecha Ingreso</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Estado</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider text-right">Acciones</th>
+                <tr className="border-b border-v-dark-border bg-v-dark/40 text-xs font-bold uppercase text-v-gray font-mono tracking-wider">
+                  <th className="p-4">Cédula</th>
+                  <th className="p-4">Conductor</th>
+                  <th className="p-4">Contacto</th>
+                  <th className="p-4">Licencia</th>
+                  <th className="p-4">Fecha Ingreso</th>
+                  <th className="p-4">Estado Operativo</th>
+                  <th className="p-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-v-dark-border">
                 {currentItems.map((driver) => {
-                  const statusInfo = DRIVER_STATUSES.find(st => st.value === driver.estado_conductor) || { label: driver.estado_conductor, color: 'bg-v-dark border-v-dark-border text-v-white' };
+                  const statusInfo = DRIVER_STATUSES.find(st => st.value === driver.estado_conductor) || { label: driver.estado_conductor, variant: 'neutral' };
                   return (
-                    <tr key={driver.id_conductor} className="hover:bg-v-dark/20 transition-colors group">
+                    <tr key={driver.id_conductor} className="hover:bg-v-dark/30 transition-colors group">
                       <td className="p-4">
-                        <span className="font-mono text-xs font-bold px-2.5 py-1.5 bg-v-dark border border-v-dark-border rounded-md text-primary">
+                        <span className="font-mono text-xs font-extrabold px-3 py-1.5 bg-v-dark border border-v-dark-border rounded-lg text-primary shadow-sm">
                           {driver.cedula_conductor}
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="font-semibold text-v-white text-sm">
+                        <div className="font-bold text-v-white text-sm">
                           {driver.nombre_conductor} {driver.apellido_conductor}
                         </div>
-                        <div className="text-v-gray text-xs mt-0.5">ID: {driver.id_conductor.substring(0, 8)}...</div>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm flex items-center gap-1">
-                          <Mail size={14} className="text-primary" />
-                          {driver.correo_conductor || 'Sin correo'}
+                        <div className="text-v-white text-xs font-medium flex items-center gap-1.5">
+                          <Mail size={13} className="text-primary shrink-0" />
+                          <span className="truncate">{driver.correo_conductor || 'Sin correo'}</span>
                         </div>
-                        <div className="text-v-gray text-xs mt-0.5">{driver.telefono_conductor || 'Sin teléfono'}</div>
+                        <div className="text-v-gray text-xs mt-0.5 font-mono">{driver.telefono_conductor || 'Sin teléfono'}</div>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm font-medium">{driver.licencia}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-v-white text-sm font-medium">{driver.fecha_ingreso}</div>
-                      </td>
-                      <td className="p-4">
-                        <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border", statusInfo.color)}>
-                          {statusInfo.label}
+                        <span className="text-xs font-mono font-bold px-2 py-1 bg-v-dark border border-v-dark-border rounded text-v-white">
+                          {driver.licencia}
                         </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-v-white text-sm font-medium font-mono">{driver.fecha_ingreso}</div>
+                      </td>
+                      <td className="p-4">
+                        <Badge variant={statusInfo.variant} pulse={statusInfo.pulse}>
+                          {statusInfo.label}
+                        </Badge>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleOpenTracking(driver)}
-                            className="p-1.5 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20 rounded-lg text-v-gray hover:text-emerald-400 transition-all duration-200 cursor-pointer"
-                            title="Ver seguimiento de conductor"
+                            className="p-2 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20 rounded-xl text-v-gray hover:text-emerald-400 transition-all cursor-pointer"
+                            title="Monitoreo GPS Conductor"
                           >
                             <Navigation size={16} className="rotate-45" />
                           </button>
                           <button
                             onClick={() => handleOpenEdit(driver)}
-                            className="p-1.5 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-lg text-v-gray hover:text-v-white transition-all duration-200 cursor-pointer"
+                            className="p-2 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-xl text-v-gray hover:text-v-white transition-all cursor-pointer"
                             title="Editar Conductor"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() => handleOpenDelete(driver)}
-                            className="p-1.5 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg text-v-gray hover:text-red-400 transition-all duration-200 cursor-pointer"
+                            className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl text-v-gray hover:text-red-400 transition-all cursor-pointer"
                             title="Eliminar Conductor"
                           >
                             <Trash2 size={16} />
@@ -451,25 +438,25 @@ const Drivers = () => {
           </div>
 
           {totalPages > 1 && (
-            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/20 text-sm text-center sm:text-left">
-              <span className="text-v-gray">
-                Mostrando <span className="font-bold text-v-white">{indexOfFirstItem + 1}</span> - <span className="font-bold text-v-white">{Math.min(indexOfLastItem, totalItems)}</span> de <span className="font-bold text-v-white">{totalItems}</span> conductores
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/30 text-xs text-v-gray font-medium">
+              <span>
+                Mostrando <strong className="text-v-white">{indexOfFirstItem + 1}</strong> - <strong className="text-v-white">{Math.min(indexOfLastItem, totalItems)}</strong> de <strong className="text-v-white">{totalItems}</strong> conductores
               </span>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="flex items-center px-3 font-semibold text-v-white">
-                  Pág. {currentPage} de {totalPages}
+                <span className="px-3 font-bold text-v-white font-mono">
+                  {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -479,10 +466,10 @@ const Drivers = () => {
         </div>
       )}
 
-      {/* CREATE & EDIT FORM MODAL */}
+      {/* CREATE & EDIT MODAL */}
       <AnimatePresence>
         {isFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -495,30 +482,28 @@ const Drivers = () => {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-2xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10"
+              className="relative w-full max-w-2xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10 text-left"
             >
-              {/* Modal Header */}
-              <div className="flex justify-between items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-v-dark-border bg-v-dark/20">
+              <div className="flex justify-between items-center px-6 py-5 border-b border-v-dark-border bg-v-dark/20">
                 <div>
-                  <h3 className="text-xl font-bold text-v-white">
+                  <h3 className="text-xl font-extrabold text-v-white">
                     {currentDriver ? 'Editar Conductor' : 'Registrar Nuevo Conductor'}
                   </h3>
                   <p className="text-xs text-v-gray mt-0.5">
-                    {currentDriver ? 'Actualice la información del operador.' : 'Complete los datos requeridos para el alta del conductor.'}
+                    {currentDriver ? 'Actualice el expediente del conductor.' : 'Defina las credenciales del nuevo operador de flota.'}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsFormOpen(false)}
-                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-lg transition-colors"
+                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-xl transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Modal Form */}
-              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 custom-scrollbar text-left">
+              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
                 {apiError && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start gap-2.5">
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold flex items-start gap-2.5">
                     <AlertTriangle className="shrink-0 mt-0.5" size={16} />
                     <span>{apiError}</span>
                   </div>
@@ -526,108 +511,87 @@ const Drivers = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Nombre(s)</label>
-                    <div className="relative">
-                      <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="text"
-                        name="nombre_conductor"
-                        placeholder="Ej. Juan"
-                        value={formData.nombre_conductor}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.nombre_conductor ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.nombre_conductor && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.nombre_conductor}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Nombre(s)</label>
+                    <input
+                      type="text"
+                      name="nombre_conductor"
+                      placeholder="Juan"
+                      value={formData.nombre_conductor}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium",
+                        formErrors.nombre_conductor ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
+                    {formErrors.nombre_conductor && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.nombre_conductor}</p>}
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Apellido(s)</label>
-                    <div className="relative">
-                      <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="text"
-                        name="apellido_conductor"
-                        placeholder="Ej. Pérez"
-                        value={formData.apellido_conductor}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.apellido_conductor ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.apellido_conductor && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.apellido_conductor}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Apellido(s)</label>
+                    <input
+                      type="text"
+                      name="apellido_conductor"
+                      placeholder="Pérez"
+                      value={formData.apellido_conductor}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium",
+                        formErrors.apellido_conductor ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
+                    {formErrors.apellido_conductor && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.apellido_conductor}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Documento de Cédula / DNI</label>
-                    <div className="relative">
-                      <FileText size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="text"
-                        name="cedula_conductor"
-                        placeholder="Ej. 1234567890"
-                        value={formData.cedula_conductor}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
-                          formErrors.cedula_conductor ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.cedula_conductor && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.cedula_conductor}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Cédula / DNI</label>
+                    <input
+                      type="text"
+                      name="cedula_conductor"
+                      placeholder="1234567890"
+                      value={formData.cedula_conductor}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.cedula_conductor ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
+                    {formErrors.cedula_conductor && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.cedula_conductor}</p>}
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Teléfono (Opcional)</label>
-                    <div className="relative">
-                      <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="text"
-                        name="telefono_conductor"
-                        placeholder="Ej. +57 312 1234567"
-                        value={formData.telefono_conductor}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.telefono_conductor ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.telefono_conductor && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.telefono_conductor}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Teléfono</label>
+                    <input
+                      type="text"
+                      name="telefono_conductor"
+                      placeholder="3121234567"
+                      value={formData.telefono_conductor}
+                      onChange={handleInputChange}
+                      className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono"
+                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Correo Electrónico (Opcional)</label>
-                    <div className="relative">
-                      <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
-                      <input
-                        type="email"
-                        name="correo_conductor"
-                        placeholder="Ej. conductor@empresa.com"
-                        value={formData.correo_conductor}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.correo_conductor ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.correo_conductor && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.correo_conductor}</p>}
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    name="correo_conductor"
+                    placeholder="conductor@empresa.com"
+                    value={formData.correo_conductor}
+                    onChange={handleInputChange}
+                    className={cn(
+                      "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium",
+                      formErrors.correo_conductor ? "border-red-500" : "border-v-dark-border"
+                    )}
+                  />
+                  {formErrors.correo_conductor && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.correo_conductor}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Tipo de Licencia</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Categoría Licencia</label>
                     <Select
                       name="licencia"
                       value={formData.licencia}
@@ -640,26 +604,22 @@ const Drivers = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Fecha de Ingreso</label>
-                    <div className="relative">
-                      <CalendarCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray z-10" />
-                      <input
-                        type="date"
-                        name="fecha_ingreso"
-                        value={formData.fecha_ingreso}
-                        onChange={handleInputChange}
-                        className={cn(
-                          "w-full bg-v-dark border focus:border-primary text-v-white text-sm pl-10 pr-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                          formErrors.fecha_ingreso ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                        )}
-                      />
-                    </div>
-                    {formErrors.fecha_ingreso && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.fecha_ingreso}</p>}
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Fecha Ingreso</label>
+                    <input
+                      type="date"
+                      name="fecha_ingreso"
+                      value={formData.fecha_ingreso}
+                      onChange={handleInputChange}
+                      className={cn(
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.fecha_ingreso ? "border-red-500" : "border-v-dark-border"
+                      )}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-v-gray">Estado Laboral</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Estado Laboral</label>
                   <Select
                     name="estado_conductor"
                     value={formData.estado_conductor}
@@ -669,17 +629,15 @@ const Drivers = () => {
                       <option key={st.value} value={st.value}>{st.label}</option>
                     ))}
                   </Select>
-                  {formErrors.estado_conductor && (
-                    <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.estado_conductor}</p>
-                  )}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border bg-v-dark-soft">
+                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setIsFormOpen(false)}
                     disabled={isSubmitLoading}
+                    className="cursor-pointer"
                   >
                     Cancelar
                   </Button>
@@ -687,6 +645,7 @@ const Drivers = () => {
                     type="submit"
                     variant="primary"
                     isLoading={isSubmitLoading}
+                    className="cursor-pointer"
                   >
                     {currentDriver ? 'Guardar Cambios' : 'Registrar'}
                   </Button>
@@ -697,10 +656,10 @@ const Drivers = () => {
         )}
       </AnimatePresence>
 
-      {/* DRIVER TRACKING MODAL */}
+      {/* TRACKING MODAL */}
       <AnimatePresence>
         {isTrackingOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -711,19 +670,18 @@ const Drivers = () => {
 
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               className="relative w-full max-w-3xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10 text-left"
             >
-              {/* Header */}
-              <div className="flex justify-between items-center px-4 sm:px-6 py-4 border-b border-v-dark-border bg-v-dark/20">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-v-dark-border bg-v-dark/20">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                     <Navigation size={20} className="rotate-45" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-v-white">
-                      Seguimiento de Conductor: {trackingDriver?.nombre_conductor} {trackingDriver?.apellido_conductor}
+                      Rastreo Conductor: {trackingDriver?.nombre_conductor} {trackingDriver?.apellido_conductor}
                     </h3>
                     <p className="text-xs text-v-gray mt-0.5">
                       Cédula: <span className="font-mono text-v-white">{trackingDriver?.cedula_conductor}</span> — Licencia: <span className="text-v-white">{trackingDriver?.licencia}</span>
@@ -732,47 +690,41 @@ const Drivers = () => {
                 </div>
                 <button
                   onClick={() => setIsTrackingOpen(false)}
-                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-lg transition-colors cursor-pointer"
+                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-xl transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Body Content */}
-              <div className="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+              <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                 {isTrackingLoading ? (
                   <div className="flex flex-col items-center justify-center py-16">
                     <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3" />
-                    <p className="text-v-gray text-xs font-medium">Consultando estado GPS y ruta activa...</p>
+                    <p className="text-v-gray text-xs font-medium">Consultando posición GPS en tiempo real...</p>
                   </div>
                 ) : trackingData ? (
                   <div className="space-y-4">
-                    {/* Status Badge HUD */}
                     <div className="p-4 bg-v-dark border border-v-dark-border rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="relative flex items-center justify-center">
-                          <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-75"></span>
-                          <Radio size={18} className="text-emerald-400 relative z-10" />
-                        </div>
+                        <Badge variant="success" pulse size="sm">
+                          Ruta Activa
+                        </Badge>
                         <div>
-                          <div className="text-xs font-bold text-emerald-400 flex items-center gap-2">
-                            Ruta en Ejecución: {trackingData.codigo_ruta} — {trackingData.nombre_ruta}
-                          </div>
+                          <p className="text-xs font-bold text-v-white">{trackingData.codigo_ruta} — {trackingData.nombre_ruta}</p>
                           <p className="text-[11px] text-v-gray mt-0.5">
-                            Vehículo: <strong className="text-v-white font-mono">{trackingData.vehiculo?.placa}</strong> ({trackingData.vehiculo?.marca} {trackingData.vehiculo?.modelo})
+                            Vehículo: <span className="text-v-white font-mono font-bold">{trackingData.vehiculo?.placa}</span>
                           </p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] text-v-gray block uppercase font-bold">Velocidad Actual</span>
-                        <span className="text-xl font-black text-emerald-400 font-mono">
-                          {trackingData.velocidad || 0} <span className="text-xs font-sans text-v-gray font-normal">km/h</span>
+                        <span className="text-[10px] text-v-gray block uppercase font-bold font-mono">Velocidad</span>
+                        <span className="text-xl font-extrabold text-emerald-400 font-mono">
+                          {trackingData.velocidad || 0} <span className="text-xs text-v-gray font-normal font-sans">km/h</span>
                         </span>
                       </div>
                     </div>
 
-                    {/* Interactive Map */}
-                    <div className="h-80 sm:h-96 relative rounded-2xl overflow-hidden border border-v-dark-border shadow-xl">
+                    <div className="h-80 relative rounded-2xl overflow-hidden border border-v-dark-border shadow-xl">
                       <MapComponent
                         routes={[]}
                         activeRoute={{
@@ -790,53 +742,20 @@ const Drivers = () => {
                         isNavigationMode={true}
                       />
                     </div>
-
-                    {/* Route addresses footer */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 bg-v-dark border border-v-dark-border rounded-xl space-y-1">
-                        <span className="text-v-gray font-bold uppercase text-[10px] tracking-wider block flex items-center gap-1">
-                          <MapPin size={12} className="text-emerald-400" /> Origen Programado
-                        </span>
-                        <p className="text-v-white font-medium truncate">{trackingData.origen}</p>
-                      </div>
-                      <div className="p-3 bg-v-dark border border-v-dark-border rounded-xl space-y-1">
-                        <span className="text-v-gray font-bold uppercase text-[10px] tracking-wider block flex items-center gap-1">
-                          <MapPin size={12} className="text-red-400" /> Destino Programado
-                        </span>
-                        <p className="text-v-white font-medium truncate">{trackingData.destino}</p>
-                      </div>
-                    </div>
                   </div>
                 ) : (
-                  /* Friendly fallback state when driver is not on route */
-                  <div className="py-12 px-4 text-center space-y-4 bg-v-dark/40 border border-v-dark-border rounded-2xl">
-                    <div className="h-16 w-16 bg-v-dark rounded-2xl border border-v-dark-border text-v-gray flex items-center justify-center mx-auto shadow-inner">
-                      <Truck size={32} className="opacity-40" />
-                    </div>
-                    <div className="space-y-1 max-w-md mx-auto">
-                      <h4 className="text-base font-bold text-v-white">
-                        Sin Ruta o Ubicación Activa
-                      </h4>
-                      <p className="text-xs text-v-gray leading-relaxed">
-                        Actualmente el conductor <strong className="text-v-white">{trackingDriver?.nombre_conductor} {trackingDriver?.apellido_conductor}</strong> no se encuentra ejecutando una ruta ni emitiendo señal GPS en vivo.
-                      </p>
-                    </div>
-                    <div className="pt-2">
-                      <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-v-dark border border-v-dark-border text-v-gray inline-block">
-                        Estado laboral: {trackingDriver?.estado_conductor || 'DISPONIBLE'}
-                      </span>
-                    </div>
+                  <div className="py-12 px-4 text-center space-y-3 bg-v-dark/40 border border-v-dark-border rounded-2xl">
+                    <Truck size={36} className="text-v-gray mx-auto opacity-50" />
+                    <h4 className="text-base font-bold text-v-white">Sin Servicio en Progreso</h4>
+                    <p className="text-xs text-v-gray max-w-md mx-auto">
+                      El conductor actualmente no posee una ruta activa en emisión GPS.
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
               <div className="p-4 border-t border-v-dark-border bg-v-dark/20 flex justify-end">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsTrackingOpen(false)}
-                  className="cursor-pointer"
-                >
+                <Button variant="ghost" onClick={() => setIsTrackingOpen(false)} className="cursor-pointer">
                   Cerrar
                 </Button>
               </div>
@@ -861,42 +780,38 @@ const Drivers = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6"
+              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6 text-left"
             >
               <div className="flex gap-4">
-                <div className="h-12 w-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center shrink-0">
                   <AlertTriangle size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-v-white">¿Confirmar eliminación?</h3>
-                  <p className="text-sm text-v-gray mt-1.5 leading-relaxed">
-                    Está a punto de eliminar el conductor <strong className="text-v-white font-semibold">{driverToDelete?.nombre_conductor} {driverToDelete?.apellido_conductor}</strong> (Cédula: <span className="font-mono">{driverToDelete?.cedula_conductor}</span>). Esta acción es irreversible.
+                  <h3 className="text-lg font-bold text-v-white">¿Confirmar baja de conductor?</h3>
+                  <p className="text-xs text-v-gray mt-1.5 leading-relaxed">
+                    Está a punto de eliminar el conductor <strong className="text-v-white font-bold">{driverToDelete?.nombre_conductor} {driverToDelete?.apellido_conductor}</strong>.
                   </p>
                 </div>
               </div>
 
               {apiError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs flex items-start gap-2">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold flex items-start gap-2">
                   <AlertTriangle className="shrink-0 mt-0.5" size={14} />
                   <span>{apiError}</span>
                 </div>
               )}
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsDeleteOpen(false)}
-                  disabled={isSubmitLoading}
-                >
+                <Button variant="ghost" onClick={() => setIsDeleteOpen(false)} disabled={isSubmitLoading} className="cursor-pointer">
                   Cancelar
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleConfirmDelete}
                   isLoading={isSubmitLoading}
-                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-v-white border-red-500/20 shadow-none hover:shadow-lg hover:shadow-red-500/10"
+                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border-red-500/20 cursor-pointer"
                 >
-                  Sí, eliminar
+                  Confirmar Eliminar
                 </Button>
               </div>
             </motion.div>

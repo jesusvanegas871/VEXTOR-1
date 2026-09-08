@@ -9,22 +9,25 @@ import {
   X,
   AlertTriangle,
   Info,
-  TrendingUp,
+  Truck,
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
+import { Badge } from '../../components/ui/Badge';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { vehicleService } from './services/vehicleService';
 import { cn } from '../../utils/cn';
 import { useTranslation } from 'react-i18next';
 
 const VEHICLE_STATUSES = [
-  { value: 'DISPONIBLE', label: 'Disponible', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  { value: 'EN_RUTA', label: 'En Ruta', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  { value: 'MANTENIMIENTO', label: 'Mantenimiento', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-  { value: 'INACTIVO', label: 'Inactivo', color: 'bg-red-500/10 text-red-500 border-red-500/20' }
+  { value: 'DISPONIBLE', label: 'Disponible', variant: 'success' },
+  { value: 'EN_RUTA', label: 'En Ruta', variant: 'info', pulse: true },
+  { value: 'MANTENIMIENTO', label: 'Mantenimiento', variant: 'warning' },
+  { value: 'INACTIVO', label: 'Inactivo', variant: 'danger' }
 ];
 
 const VEHICLE_TYPES = ['Automóvil', 'Camioneta', 'Furgón', 'Camión', 'Bus'];
@@ -44,7 +47,7 @@ const Vehicles = () => {
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [currentVehicle, setCurrentVehicle] = useState(null); // null for Create, vehicle object for Edit
+  const [currentVehicle, setCurrentVehicle] = useState(null);
   const [vehicleToDelete, setVehicleToDelete] = useState(null);
 
   // Form state
@@ -68,7 +71,6 @@ const Vehicles = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // Load vehicles from API
   const loadVehicles = async () => {
     setIsLoading(true);
     try {
@@ -85,16 +87,13 @@ const Vehicles = () => {
     loadVehicles();
   }, []);
 
-  // Handle URL query parameters to trigger "Create Vehicle" from Dashboard Quick Action
   useEffect(() => {
     if (searchParams.get('action') === 'new' && vehicles.length > 0) {
       handleOpenCreate();
-      // Clear parameter so it doesn't reopen on refresh
       setSearchParams({});
     }
   }, [searchParams, vehicles]);
 
-  // Form field change handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -106,39 +105,24 @@ const Vehicles = () => {
     }
   };
 
-  // Form validator
   const validateForm = () => {
     const errors = {};
     const currentYear = new Date().getFullYear();
 
-    // Placa: format of AAA123 or AAA-123 or AAA12A or AAA-12A (Colombian standard plates)
     if (!formData.placa) {
       errors.placa = 'La placa es obligatoria';
     } else if (!/^[A-Z]{3}-?([0-9]{3}|[0-9]{2}[A-Z])$/i.test(formData.placa)) {
-      errors.placa = 'Formato de placa inválido en Colombia. Ejemplo: ABC-123 o ABC-12C';
+      errors.placa = 'Formato de placa inválido. Ejemplo: ABC-123 o ABC-12C';
     }
 
-    if (!formData.marca.trim()) {
-      errors.marca = 'La marca es obligatoria';
-    } else if (formData.marca.length > 50) {
-      errors.marca = 'Máximo 50 caracteres';
-    }
-
-    if (!formData.modelo.trim()) {
-      errors.modelo = 'El modelo es obligatorio';
-    } else if (formData.modelo.length > 50) {
-      errors.modelo = 'Máximo 50 caracteres';
-    }
+    if (!formData.marca.trim()) errors.marca = 'La marca es obligatoria';
+    if (!formData.modelo.trim()) errors.modelo = 'El modelo es obligatorio';
 
     const anioNum = parseInt(formData.anio, 10);
     if (!formData.anio) {
       errors.anio = 'El año es obligatorio';
     } else if (isNaN(anioNum) || anioNum < 1950 || anioNum > currentYear + 1) {
       errors.anio = `Año inválido (1950 - ${currentYear + 1})`;
-    }
-
-    if (formData.color && formData.color.length > 30) {
-      errors.color = 'Máximo 30 caracteres';
     }
 
     const pasajerosNum = parseInt(formData.capacidad_pasajeros, 10);
@@ -157,25 +141,16 @@ const Vehicles = () => {
 
     const kmLimiteNum = parseInt(formData.kilometraje_limite_mantenimiento, 10);
     if (!formData.kilometraje_limite_mantenimiento) {
-      errors.kilometraje_limite_mantenimiento = 'El límite de mantenimiento es obligatorio';
+      errors.kilometraje_limite_mantenimiento = 'El límite es obligatorio';
     } else if (isNaN(kmLimiteNum) || kmLimiteNum <= 0) {
       errors.kilometraje_limite_mantenimiento = 'Debe ser mayor a 0';
     } else if (!isNaN(kmActualNum) && kmLimiteNum <= kmActualNum) {
       errors.kilometraje_limite_mantenimiento = 'Debe ser mayor al kilometraje actual';
     }
 
-    if (formData.documentacion_vehiculo && formData.documentacion_vehiculo.length > 255) {
-      errors.documentacion_vehiculo = 'Máximo 255 caracteres';
-    }
-
-    if (currentVehicle && currentVehicle.estado_vehiculo === 'EN_RUTA' && formData.estado_vehiculo === 'DISPONIBLE') {
-      errors.estado_vehiculo = 'No se puede cambiar a DISPONIBLE mientras el vehículo tenga una ruta activa o asignada.';
-    }
-
     return errors;
   };
 
-  // Open Create Form modal
   const handleOpenCreate = () => {
     setCurrentVehicle(null);
     setFormData({
@@ -196,7 +171,6 @@ const Vehicles = () => {
     setIsFormOpen(true);
   };
 
-  // Open Edit Form modal
   const handleOpenEdit = (vehicle) => {
     setCurrentVehicle(vehicle);
     setFormData({
@@ -217,7 +191,6 @@ const Vehicles = () => {
     setIsFormOpen(true);
   };
 
-  // Submit Form (Create / Edit)
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
@@ -231,10 +204,8 @@ const Vehicles = () => {
 
     try {
       if (currentVehicle) {
-        // Edit Mode
         await vehicleService.updateVehicle(currentVehicle.id_vehiculo, formData);
       } else {
-        // Create Mode
         await vehicleService.createVehicle(formData);
       }
       setIsFormOpen(false);
@@ -246,14 +217,12 @@ const Vehicles = () => {
     }
   };
 
-  // Open Delete confirmation dialog
   const handleOpenDelete = (vehicle) => {
     setVehicleToDelete(vehicle);
     setApiError('');
     setIsDeleteOpen(true);
   };
 
-  // Confirm Delete
   const handleConfirmDelete = async () => {
     setIsSubmitLoading(true);
     setApiError('');
@@ -269,7 +238,6 @@ const Vehicles = () => {
     }
   };
 
-  // Filter & Search Logic
   const filteredVehicles = vehicles.filter(vehicle => {
     const query = search.trim().toLowerCase();
     const matchesSearch =
@@ -283,7 +251,6 @@ const Vehicles = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Pagination Logic
   const totalItems = filteredVehicles.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -298,47 +265,49 @@ const Vehicles = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter, typeFilter]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-v-dark-soft p-6 rounded-2xl border border-v-dark-border">
-        <div>
-          <h2 className="text-2xl font-bold text-v-white">{t('vehicles.title')}</h2>
-          <p className="text-v-gray text-sm mt-0.5">{t('vehicles.subtitle')}</p>
-        </div>
-        <Button
-          variant="primary"
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 self-stretch sm:self-auto shrink-0"
-        >
-          <Plus size={18} /> {t('vehicles.addBtn')}
-        </Button>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title={t('vehicles.title', 'Gestión de Flota Vehicular')}
+        subtitle={t('vehicles.subtitle', 'Supervisión de unidades, kilometraje, mantenimiento y capacidad operativa.')}
+        badge={
+          <Badge variant="primary" pulse size="xs">
+            {vehicles.length} Unidades
+          </Badge>
+        }
+        actions={
+          <Button
+            variant="primary"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 w-full sm:w-auto cursor-pointer"
+          >
+            <Plus size={18} /> {t('vehicles.addBtn', 'Registrar Vehículo')}
+          </Button>
+        }
+      />
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row gap-4 bg-v-dark-soft p-4 rounded-xl border border-v-dark-border">
-        {/* Search Input */}
+      <div className="flex flex-col md:flex-row gap-4 bg-v-dark-soft p-4 rounded-2xl border border-v-dark-border shadow-sm">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-v-gray" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-v-gray" />
           <input
             type="text"
-            placeholder={t('vehicles.placeholderSearch')}
+            placeholder={t('vehicles.placeholderSearch', 'Buscar por placa, marca o modelo...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+            className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium"
           />
         </div>
 
-        {/* Filters dropdowns */}
         <div className="flex flex-wrap sm:flex-nowrap gap-3">
-          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3 py-1.5 rounded-lg shrink-0">
+          <div className="flex items-center gap-1.5 bg-v-dark border border-v-dark-border px-3.5 py-2 rounded-xl shrink-0">
             <SlidersHorizontal size={15} className="text-v-gray" />
-            <span className="text-v-gray text-xs font-medium">{t('reports.filters.status')}:</span>
+            <span className="text-v-gray text-xs font-bold uppercase font-mono">Filtros:</span>
           </div>
 
           <Select
@@ -346,7 +315,7 @@ const Vehicles = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-48"
           >
-            <option value="">{t('vehicles.filterAll')}</option>
+            <option value="">Todos los Estados</option>
             {VEHICLE_STATUSES.map(st => (
               <option key={st.value} value={st.value}>{st.label}</option>
             ))}
@@ -357,7 +326,7 @@ const Vehicles = () => {
             onChange={(e) => setTypeFilter(e.target.value)}
             className="w-48"
           >
-            <option value="">Todos los tipos</option>
+            <option value="">Todos los Tipos</option>
             {VEHICLE_TYPES.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -365,77 +334,95 @@ const Vehicles = () => {
         </div>
       </div>
 
-      {/* Main Table / Grid view */}
+      {/* Main Content */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
+        <div className="flex flex-col items-center justify-center min-h-[350px] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12">
           <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-v-gray text-sm">Cargando flota vehicular...</p>
+          <p className="text-v-gray text-sm font-medium">Cargando flota vehicular de la plataforma...</p>
         </div>
       ) : filteredVehicles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] bg-v-dark-soft border border-v-dark-border rounded-2xl p-12 text-center">
-          <Info size={40} className="text-v-gray mb-4" />
-          <h3 className="text-lg font-bold text-v-white mb-1">No se encontraron vehículos</h3>
-          <p className="text-v-gray text-sm max-w-sm">Intente modificar los filtros o el término de búsqueda ingresado.</p>
-        </div>
+        <EmptyState
+          icon={Truck}
+          title="No se encontraron vehículos"
+          description="No existen registros vehiculares que coincidan con los criterios de búsqueda o filtros seleccionados."
+          action={
+            (search || statusFilter || typeFilter) ? (
+              <Button
+                variant="outline"
+                onClick={() => { setSearch(''); setStatusFilter(''); setTypeFilter(''); }}
+                className="cursor-pointer"
+              >
+                Limpiar Filtros
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={handleOpenCreate}
+                className="cursor-pointer"
+              >
+                <Plus size={16} className="mr-1.5" /> Registrar Primer Vehículo
+              </Button>
+            )
+          }
+        />
       ) : (
         <div className="bg-v-dark-soft border border-v-dark-border rounded-2xl overflow-hidden shadow-xl">
-          {/* Responsive Table Wrapper */}
           <div className="overflow-x-auto w-full custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[650px]">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr className="border-b border-v-dark-border bg-v-dark/40">
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Placa</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Vehículo</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Año / Color</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Tipo / Capacidad</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Kilometraje</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider">Estado</th>
-                  <th className="p-4 text-xs font-bold uppercase text-v-gray tracking-wider text-right">Acciones</th>
+                <tr className="border-b border-v-dark-border bg-v-dark/40 text-xs font-bold uppercase text-v-gray font-mono tracking-wider">
+                  <th className="p-4">Placa</th>
+                  <th className="p-4">Vehículo</th>
+                  <th className="p-4">Año / Color</th>
+                  <th className="p-4">Tipo / Capacidad</th>
+                  <th className="p-4">Kilometraje</th>
+                  <th className="p-4">Estado Operativo</th>
+                  <th className="p-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-v-dark-border">
                 {currentItems.map((vehicle) => {
-                  const statusInfo = VEHICLE_STATUSES.find(st => st.value === vehicle.estado_vehiculo) || { label: vehicle.estado_vehiculo, color: 'bg-v-dark border-v-dark-border text-v-white' };
+                  const statusInfo = VEHICLE_STATUSES.find(st => st.value === vehicle.estado_vehiculo) || { label: vehicle.estado_vehiculo, variant: 'neutral' };
                   return (
-                    <tr key={vehicle.id_vehiculo} className="hover:bg-v-dark/20 transition-colors group">
+                    <tr key={vehicle.id_vehiculo} className="hover:bg-v-dark/30 transition-colors group">
                       <td className="p-4">
-                        <span className="font-mono text-xs font-bold px-2.5 py-1.5 bg-v-dark border border-v-dark-border rounded-md text-primary">
+                        <span className="font-mono text-xs font-extrabold px-3 py-1.5 bg-v-dark border border-v-dark-border rounded-lg text-primary shadow-sm">
                           {vehicle.placa}
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="font-semibold text-v-white text-sm">{vehicle.marca}</div>
-                        <div className="text-v-gray text-xs mt-0.5">{vehicle.modelo}</div>
+                        <div className="font-bold text-v-white text-sm">{vehicle.marca}</div>
+                        <div className="text-v-gray text-xs mt-0.5 font-medium">{vehicle.modelo}</div>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm">{vehicle.anio}</div>
+                        <div className="text-v-white text-sm font-semibold">{vehicle.anio}</div>
                         <div className="text-v-gray text-xs mt-0.5">{vehicle.color || 'No especificado'}</div>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm">{vehicle.tipo_vehiculo}</div>
+                        <div className="text-v-white text-sm font-medium">{vehicle.tipo_vehiculo}</div>
                         <div className="text-v-gray text-xs mt-0.5">{vehicle.capacidad_pasajeros} pasajeros</div>
                       </td>
                       <td className="p-4">
-                        <div className="text-v-white text-sm font-semibold">{vehicle.kilometraje_actual.toLocaleString()} km</div>
-                        <div className="text-[11px] text-v-gray mt-0.5">Límite: {vehicle.kilometraje_limite_mantenimiento.toLocaleString()} km</div>
+                        <div className="text-v-white text-sm font-bold font-mono">{vehicle.kilometraje_actual.toLocaleString()} km</div>
+                        <div className="text-[11px] text-v-gray mt-0.5 font-mono">Límite: {vehicle.kilometraje_limite_mantenimiento.toLocaleString()} km</div>
                       </td>
                       <td className="p-4">
-                        <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border", statusInfo.color)}>
+                        <Badge variant={statusInfo.variant} pulse={statusInfo.pulse}>
                           {statusInfo.label}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleOpenEdit(vehicle)}
-                            className="p-1.5 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-lg text-v-gray hover:text-v-white transition-all duration-200"
+                            className="p-2 hover:bg-v-dark border border-transparent hover:border-v-dark-border rounded-xl text-v-gray hover:text-v-white transition-all cursor-pointer"
                             title="Editar Vehículo"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() => handleOpenDelete(vehicle)}
-                            className="p-1.5 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg text-v-gray hover:text-red-400 transition-all duration-200"
+                            className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl text-v-gray hover:text-red-400 transition-all cursor-pointer"
                             title="Eliminar Vehículo"
                           >
                             <Trash2 size={16} />
@@ -449,27 +436,26 @@ const Vehicles = () => {
             </table>
           </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/20 text-sm text-center sm:text-left">
-              <span className="text-v-gray">
-                Mostrando <span className="font-bold text-v-white">{indexOfFirstItem + 1}</span> - <span className="font-bold text-v-white">{Math.min(indexOfLastItem, totalItems)}</span> de <span className="font-bold text-v-white">{totalItems}</span> unidades
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-v-dark-border bg-v-dark/30 text-xs text-v-gray font-medium">
+              <span>
+                Mostrando <strong className="text-v-white">{indexOfFirstItem + 1}</strong> - <strong className="text-v-white">{Math.min(indexOfLastItem, totalItems)}</strong> de <strong className="text-v-white">{totalItems}</strong> unidades
               </span>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="flex items-center px-3 font-semibold text-v-white">
-                  Pág. {currentPage} de {totalPages}
+                <span className="px-3 font-bold text-v-white font-mono">
+                  {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className="p-1.5 rounded-lg border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-xl border border-v-dark-border bg-v-dark text-v-gray hover:text-v-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -482,8 +468,7 @@ const Vehicles = () => {
       {/* CREATE & EDIT FORM MODAL */}
       <AnimatePresence>
         {isFormOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
-            {/* Modal Backdrop */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -492,63 +477,58 @@ const Vehicles = () => {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
 
-            {/* Modal Dialog container */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               className="relative w-full max-w-2xl bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col z-10"
             >
-              {/* Modal Header */}
-              <div className="flex justify-between items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-v-dark-border bg-v-dark/20">
+              <div className="flex justify-between items-center px-6 py-5 border-b border-v-dark-border bg-v-dark/20 text-left">
                 <div>
-                  <h3 className="text-xl font-bold text-v-white">
+                  <h3 className="text-xl font-extrabold text-v-white">
                     {currentVehicle ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}
                   </h3>
                   <p className="text-xs text-v-gray mt-0.5">
-                    {currentVehicle ? 'Actualice la información de la unidad.' : 'Complete todos los atributos obligatorios del vehículo.'}
+                    {currentVehicle ? 'Actualice los parámetros de la unidad.' : 'Ingrese los datos de la nueva unidad vehicular.'}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsFormOpen(false)}
-                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-lg transition-colors"
+                  className="p-2 text-v-gray hover:text-v-white hover:bg-v-dark-border/40 rounded-xl transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Modal Form */}
-              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 custom-scrollbar text-left">
+              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar text-left">
                 {apiError && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-start gap-2.5">
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-semibold flex items-start gap-2.5">
                     <AlertTriangle className="shrink-0 mt-0.5" size={16} />
                     <span>{apiError}</span>
                   </div>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Placa */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Placa (Formato: ABC-1234)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Placa Vehicular</label>
                     <input
                       type="text"
                       name="placa"
-                      placeholder="ABC-1234"
+                      placeholder="ABC-123"
                       value={formData.placa}
                       onChange={handleInputChange}
-                      disabled={!!currentVehicle} // Placa is immutable in standard logistics systems
+                      disabled={!!currentVehicle}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono uppercase",
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono uppercase font-bold",
                         formErrors.placa ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border",
                         currentVehicle && "opacity-60 cursor-not-allowed"
                       )}
                     />
-                    {formErrors.placa && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.placa}</p>}
+                    {formErrors.placa && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.placa}</p>}
                   </div>
 
-                  {/* Tipo de Vehículo */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Tipo de Vehículo</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Tipo de Vehículo</label>
                     <Select
                       name="tipo_vehiculo"
                       value={formData.tipo_vehiculo}
@@ -562,9 +542,8 @@ const Vehicles = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Marca */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Marca</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Marca</label>
                     <input
                       type="text"
                       name="marca"
@@ -572,16 +551,15 @@ const Vehicles = () => {
                       value={formData.marca}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.marca ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium",
+                        formErrors.marca ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.marca && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.marca}</p>}
+                    {formErrors.marca && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.marca}</p>}
                   </div>
 
-                  {/* Modelo */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Modelo</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Modelo</label>
                     <input
                       type="text"
                       name="modelo"
@@ -589,52 +567,45 @@ const Vehicles = () => {
                       value={formData.modelo}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.modelo ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium",
+                        formErrors.modelo ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.modelo && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.modelo}</p>}
+                    {formErrors.modelo && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.modelo}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Año */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Año de Fabricación</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Año</label>
                     <input
                       type="number"
                       name="anio"
-                      placeholder="2022"
+                      placeholder="2023"
                       value={formData.anio}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.anio ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.anio ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.anio && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.anio}</p>}
+                    {formErrors.anio && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.anio}</p>}
                   </div>
 
-                  {/* Color */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Color (Opcional)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Color</label>
                     <input
                       type="text"
                       name="color"
-                      placeholder="Ej. Plateado"
+                      placeholder="Blanco"
                       value={formData.color}
                       onChange={handleInputChange}
-                      className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.color ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                      )}
+                      className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
                     />
-                    {formErrors.color && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.color}</p>}
                   </div>
 
-                  {/* Capacidad */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Capacidad (Pasajeros)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Pasajeros</label>
                     <input
                       type="number"
                       name="capacidad_pasajeros"
@@ -642,18 +613,17 @@ const Vehicles = () => {
                       value={formData.capacidad_pasajeros}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.capacidad_pasajeros ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.capacidad_pasajeros ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.capacidad_pasajeros && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.capacidad_pasajeros}</p>}
+                    {formErrors.capacidad_pasajeros && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.capacidad_pasajeros}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Kilometraje Actual */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Kilometraje Actual (km)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Kilometraje Actual</label>
                     <input
                       type="number"
                       name="kilometraje_actual"
@@ -661,35 +631,33 @@ const Vehicles = () => {
                       value={formData.kilometraje_actual}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.kilometraje_actual ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.kilometraje_actual ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.kilometraje_actual && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.kilometraje_actual}</p>}
+                    {formErrors.kilometraje_actual && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.kilometraje_actual}</p>}
                   </div>
 
-                  {/* Kilometraje Limite Mantenimiento */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Próximo Mantenimiento (km límite)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Límite Mantenimiento (km)</label>
                     <input
                       type="number"
                       name="kilometraje_limite_mantenimiento"
-                      placeholder="Ej. 10000"
+                      placeholder="10000"
                       value={formData.kilometraje_limite_mantenimiento}
                       onChange={handleInputChange}
                       className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.kilometraje_limite_mantenimiento ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
+                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-mono",
+                        formErrors.kilometraje_limite_mantenimiento ? "border-red-500" : "border-v-dark-border"
                       )}
                     />
-                    {formErrors.kilometraje_limite_mantenimiento && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.kilometraje_limite_mantenimiento}</p>}
+                    {formErrors.kilometraje_limite_mantenimiento && <p className="text-xs text-red-400 mt-0.5 font-medium">{formErrors.kilometraje_limite_mantenimiento}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Estado Vehículo */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Estado Operativo</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Estado Operativo</label>
                     <Select
                       name="estado_vehiculo"
                       value={formData.estado_vehiculo}
@@ -699,36 +667,28 @@ const Vehicles = () => {
                         <option key={st.value} value={st.value}>{st.label}</option>
                       ))}
                     </Select>
-                    {formErrors.estado_vehiculo && (
-                      <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.estado_vehiculo}</p>
-                    )}
                   </div>
 
-                  {/* Documentación */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-v-gray">Documentación (Opcional)</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-v-gray font-mono">Documentación</label>
                     <input
                       type="text"
                       name="documentacion_vehiculo"
-                      placeholder="Ej. SOAT al día hasta Dic 2026"
+                      placeholder="SOAT vigencia 2026"
                       value={formData.documentacion_vehiculo}
                       onChange={handleInputChange}
-                      className={cn(
-                        "w-full bg-v-dark border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all",
-                        formErrors.documentacion_vehiculo ? "border-red-500 focus:ring-red-500/10" : "border-v-dark-border"
-                      )}
+                      className="w-full bg-v-dark border border-v-dark-border focus:border-primary text-v-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
                     />
-                    {formErrors.documentacion_vehiculo && <p className="text-xs text-red-500 mt-0.5 font-medium">{formErrors.documentacion_vehiculo}</p>}
                   </div>
                 </div>
 
-                {/* Modal Footer (Form buttons) */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border bg-v-dark-soft">
+                <div className="flex justify-end gap-3 pt-4 border-t border-v-dark-border">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setIsFormOpen(false)}
                     disabled={isSubmitLoading}
+                    className="cursor-pointer"
                   >
                     Cancelar
                   </Button>
@@ -736,6 +696,7 @@ const Vehicles = () => {
                     type="submit"
                     variant="primary"
                     isLoading={isSubmitLoading}
+                    className="cursor-pointer"
                   >
                     {currentVehicle ? 'Guardar Cambios' : 'Registrar'}
                   </Button>
@@ -762,22 +723,22 @@ const Vehicles = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6"
+              className="relative w-full max-w-md bg-v-dark-soft border border-v-dark-border rounded-2xl shadow-2xl p-6 z-10 space-y-6 text-left"
             >
               <div className="flex gap-4">
-                <div className="h-12 w-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                <div className="h-12 w-12 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center shrink-0">
                   <AlertTriangle size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-v-white">¿Confirmar eliminación?</h3>
-                  <p className="text-sm text-v-gray mt-1.5 leading-relaxed">
-                    Está a punto de eliminar el vehículo con placa <strong className="text-v-white font-semibold font-mono">{vehicleToDelete?.placa}</strong> ({vehicleToDelete?.marca} {vehicleToDelete?.modelo}). Esta acción no se puede deshacer.
+                  <h3 className="text-lg font-bold text-v-white">¿Confirmar baja de unidad?</h3>
+                  <p className="text-xs text-v-gray mt-1.5 leading-relaxed">
+                    Está a punto de eliminar el vehículo con placa <strong className="text-v-white font-bold font-mono">{vehicleToDelete?.placa}</strong> ({vehicleToDelete?.marca} {vehicleToDelete?.modelo}).
                   </p>
                 </div>
               </div>
 
               {apiError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs flex items-start gap-2">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-start gap-2 font-medium">
                   <AlertTriangle className="shrink-0 mt-0.5" size={14} />
                   <span>{apiError}</span>
                 </div>
@@ -788,6 +749,7 @@ const Vehicles = () => {
                   variant="ghost"
                   onClick={() => setIsDeleteOpen(false)}
                   disabled={isSubmitLoading}
+                  className="cursor-pointer"
                 >
                   Cancelar
                 </Button>
@@ -795,9 +757,9 @@ const Vehicles = () => {
                   variant="outline"
                   onClick={handleConfirmDelete}
                   isLoading={isSubmitLoading}
-                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-v-white border-red-500/20 shadow-none hover:shadow-lg hover:shadow-red-500/10"
+                  className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border-red-500/20 cursor-pointer"
                 >
-                  Sí, eliminar
+                  Confirmar Eliminar
                 </Button>
               </div>
             </motion.div>
