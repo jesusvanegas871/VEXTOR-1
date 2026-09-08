@@ -147,3 +147,14 @@ def test_export_excel_rbac(test_db_reports):
     res_user = client.get("/api/reports/export?report_type=vehicles&format=xlsx", headers={"Authorization": f"Bearer {user_token}"})
     assert res_user.status_code == 403
     assert "Solo los usuarios con rol 'Administrador'" in res_user.json()["detail"]
+
+
+def test_export_excel_rbac_error_message(test_db_reports):
+    client = TestClient(app)
+    reg_user = test_db_reports.query(Usuario).filter(Usuario.correo_usuario == "user_reports@vextor.com").first()
+    user_token = create_access_token({"sub": reg_user.correo_usuario, "role": "Usuario"})
+
+    res = client.get("/api/reports/export?report_type=vehicles&format=xlsx", headers={"Authorization": f"Bearer {user_token}"})
+    assert res.status_code == 403
+    json_resp = res.json()
+    assert json_resp["detail"] == "Solo los usuarios con rol 'Administrador' pueden exportar en formato Excel."
