@@ -3,6 +3,7 @@ import HeroSection from './components/HeroSection';
 import ProblemSection from './components/ProblemSection';
 import FeaturesSection from './components/FeaturesSection';
 import CTASection from './components/CTASection';
+import ContactSection from './components/ContactSection';
 import LandingFooter from './components/LandingFooter';
 
 /**
@@ -17,7 +18,8 @@ import LandingFooter from './components/LandingFooter';
  * * ProblemSection: Agitación de puntos de dolor operativos y posicionamiento VEXTOR.
  * * FeaturesSection: 6 funciones clave (#funciones) y beneficios reales (#beneficios).
  * * CTASection: Llamada a la acción final hacia /register.
- * * LandingFooter: Información corporativa y contacto (#contacto).
+ * * ContactSection: Formulario de contacto funcional (#contacto) con FormSubmit.
+ * * LandingFooter: Información corporativa y enlaces de navegación.
  */
 const Landing = () => {
   return (
@@ -29,6 +31,7 @@ const Landing = () => {
         <ProblemSection />
         <FeaturesSection />
         <CTASection />
+        <ContactSection />
       </main>
 
       <LandingFooter />
