@@ -1,75 +1,78 @@
 import { motion } from 'framer-motion';
-import { Rocket, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 
 /**
  * CTASection Component
  *
  * Responsabilidad:
- * Sección final de llamada a la acción (Call to Action) de la Landing Page.
+ * Llamada a la acción final (Call to Action) para la Landing Page.
  *
  * Funcionalidades:
- * * Recordatorio final de la propuesta de valor.
- * * Botones de conversión (Registro / Demo).
- * * Eliminación de fricción (Mención de "Sin tarjeta de crédito", "Configuración rápida").
- * * Diseño envolvente con orbes de luz y texturas sutiles.
+ * * Titular con cierre de alto impacto ("Comience a gestionar su flota de forma inteligente.").
+ * * Botón principal "Comenzar Gratis" con enlace a /register.
+ * * Mención de beneficios sin fricción (Sin tarjetas de crédito, configuración rápida).
  */
 const CTASection = () => {
   return (
-    <section className="py-24 bg-v-dark relative overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-primary/20 blur-[120px] rounded-full -z-10 animate-pulse" />
-
-      <div className="container mx-auto px-6">
+    <section className="py-20 lg:py-28 bg-v-dark transition-colors duration-300 relative overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="relative bg-v-dark-soft border border-v-white/10 rounded-[48px] p-12 md:p-20 overflow-hidden text-center">
-            {/* Background Texture */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[20px_20px]" />
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative z-10"
-            >
-              <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(16,185,129,0.3)] rotate-12">
-                <Rocket className="text-v-dark-constant w-10 h-10" />
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative bg-v-dark-soft border border-v-dark-border rounded-3xl sm:rounded-[36px] p-8 sm:p-12 md:p-16 text-center shadow-xl overflow-hidden"
+          >
+            {/* Subtle light orb in background */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/10 blur-3xl rounded-full pointer-events-none -z-0" />
+
+            <div className="relative z-10 max-w-3xl mx-auto">
+
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-6">
+                <CheckCircle2 size={16} />
+                Transformación Digital VEXTOR
               </div>
 
-              <h2 className="text-4xl md:text-6xl font-bold text-v-white mb-8 tracking-tight">
-                Transforme la gestión de su <span className="text-primary">flota hoy mismo.</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-v-white mb-6 tracking-tight leading-tight">
+                Comience a gestionar su flota de <span className="text-primary">forma inteligente.</span>
               </h2>
 
-              <p className="text-xl text-v-gray mb-12 max-w-2xl mx-auto leading-relaxed">
-                Únase a cientos de empresas que ya han digitalizado su operación con Vextor. Comience su prueba gratuita ahora.
+              <p className="text-base sm:text-lg text-v-gray mb-10 leading-relaxed font-normal max-w-xl mx-auto">
+                Modernice su operación de transporte especial en minutos. Tome el control total de vehículos, conductores y rutas hoy mismo.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Button size="lg" className="w-full sm:w-auto h-16 px-10 text-lg rounded-2xl group">
-                  Crear mi cuenta gratis
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button variant="ghost" size="lg" className="w-full sm:w-auto h-16 text-v-white hover:bg-v-white/5 rounded-2xl border border-v-white/10">
-                  Agendar una demo
-                </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/register" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base font-bold h-13 px-9 rounded-xl shadow-md group">
+                    Comenzar Gratis
+                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/login" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto text-base font-semibold h-13 px-8 rounded-xl border-v-dark-border hover:border-primary/40">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
               </div>
 
-              <div className="mt-16 flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60">
-                <div className="flex items-center gap-2 text-v-white text-sm font-medium">
-                  <ShieldCheck className="text-primary w-5 h-5" />
-                  Sin tarjeta de crédito
+              <div className="mt-12 pt-8 border-t border-v-dark-border/60 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs sm:text-sm text-v-gray font-medium">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="text-primary w-4 h-4 shrink-0" />
+                  <span>Sin tarjeta de crédito requerida</span>
                 </div>
-                <div className="flex items-center gap-2 text-v-white text-sm font-medium">
-                  <Zap className="text-primary w-5 h-5" />
-                  Configuración en 5 minutos
-                </div>
-                <div className="flex items-center gap-2 text-v-white text-sm font-medium">
-                  <ShieldCheck className="text-primary w-5 h-5" />
-                  Soporte 24/7 en español
+                <div className="flex items-center gap-2">
+                  <Zap className="text-primary w-4 h-4 shrink-0" />
+                  <span>Configuración ágil e inmediata</span>
                 </div>
               </div>
-            </motion.div>
-          </div>
+
+            </div>
+          </motion.div>
+
         </div>
       </div>
     </section>

@@ -3,127 +3,145 @@ import {
   FileText,
   Search,
   MessageSquare,
-  AlertCircle,
+  AlertTriangle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 /**
  * ProblemSection Component
  *
  * Responsabilidad:
- * Sección de agitación de problemas (Problem/Agitation) para la Landing Page.
+ * Demostrar los problemas críticos de la gestión manual de flotas y posicionar a VEXTOR como la solución definitiva.
  *
  * Funcionalidades:
- * * Listado de puntos de dolor comunes en la gestión de flotas manual.
- * * Tarjetas interactivas con iconos representativos.
- * * Llamada a la acción destacada (Digitalización).
- * * Contraste visual fuerte para resaltar la necesidad de cambio.
+ * * Titular con agitación del problema ("¿Su operación depende de procesos manuales?").
+ * * Tarjetas de puntos de dolor operativos (papel, Excel disperso, WhatsApp, faltas de mantenimiento).
+ * * Tarjeta destacada de conversión directa a la solución VEXTOR.
  */
-const problems = [
+const painPoints = [
   {
     title: "Uso excesivo de papel",
-    description: "Reportes físicos que se pierden, se dañan o son difíciles de archivar y consultar.",
-    icon: FileText,
-    color: "text-amber-500",
-    bg: "bg-amber-500/10"
+    description: "Planillas y reportes físicos que se extravían, deterioran o son imposibles de auditar rápidamente.",
+    icon: FileText
   },
   {
-    title: "Información dispersa",
-    description: "Datos en múltiples hojas de cálculo de Excel que nadie logra consolidar a tiempo.",
-    icon: Search,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10"
+    title: "Información dispersa en Excel",
+    description: "Múltiples archivos desactualizados que impiden consolidar indicadores de flota a tiempo.",
+    icon: Search
   },
   {
-    title: "Gestión por WhatsApp",
-    description: "Operaciones críticas decididas en chats informales sin historial ni estructura operativa.",
-    icon: MessageSquare,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10"
+    title: "Gestión informal por WhatsApp",
+    description: "Despachos e imprevistos coordinados sin registro estructurado ni trazabilidad operativa.",
+    icon: MessageSquare
   },
   {
-    title: "Mantenimientos olvidados",
-    description: "Falta de alertas preventivas que resultan en vehículos varados y costos correctivos altos.",
-    icon: AlertCircle,
-    color: "text-rose-500",
-    bg: "bg-rose-500/10"
+    title: "Mantenimientos correctivos costosos",
+    description: "Falta de alertas preventivas que causan varadas en carretera e interrupción del servicio.",
+    icon: AlertTriangle
   },
   {
-    title: "Falta de control real",
-    description: "Dificultad para saber exactamente dónde están sus vehículos o qué hacen sus conductores.",
-    icon: Clock,
-    color: "text-purple-500",
-    bg: "bg-purple-500/10"
+    title: "Pérdida de control del tiempo",
+    description: "Incertidumbre constante sobre la ubicación exacta y el estado de conductores y vehículos.",
+    icon: Clock
   }
 ];
 
 const ProblemSection = () => {
   return (
-    <section className="py-24 bg-v-dark relative overflow-hidden">
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-3xl mb-20">
+    <section className="py-20 lg:py-28 bg-v-dark transition-colors duration-300 relative overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+
+        {/* ENCABEZADO DE SECCIÓN */}
+        <div className="max-w-3xl mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
+          >
+            El Desafío Operativo
+          </motion.div>
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-v-white mb-6"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 leading-tight"
           >
-            ¿Su operación depende de <span className="text-rose-500">procesos manuales?</span>
+            ¿Su operación depende de <span className="text-primary">procesos manuales?</span>
           </motion.h2>
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-xl text-v-gray leading-relaxed"
+            className="text-base sm:text-lg text-v-gray leading-relaxed font-normal"
           >
             Las empresas de transporte más competitivas ya dejaron atrás el papel. Si aún gestiona su flota de forma manual, está perdiendo dinero y control.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {problems.map((problem, index) => (
+        {/* GRID DE PROBLEMAS VS SOLUCIÓN */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {painPoints.map((point, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group p-8 rounded-3xl bg-v-dark-soft border border-v-dark-border hover:border-v-white/20 transition-all duration-300"
+              transition={{ delay: index * 0.08, duration: 0.5 }}
+              className="group p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between"
             >
-              <div className={`w-14 h-14 rounded-2xl ${problem.bg} ${problem.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                <problem.icon size={28} />
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <point.icon size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-v-white mb-3 group-hover:text-primary transition-colors">
+                  {point.title}
+                </h3>
+                <p className="text-v-gray text-sm leading-relaxed mb-6">
+                  {point.description}
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-v-white mb-3">{problem.title}</h3>
-              <p className="text-v-gray leading-relaxed mb-6">
-                {problem.description}
-              </p>
-              <div className="flex items-center text-sm font-bold text-v-white/40 group-hover:text-primary transition-colors">
-                Digitalizar proceso <ArrowRight className="ml-2 w-4 h-4" />
+
+              <div className="pt-4 border-t border-v-dark-border/60 flex items-center text-xs font-bold text-v-gray/70 group-hover:text-primary transition-colors">
+                Solución VEXTOR disponible <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
           ))}
 
-          {/* Special Solution Card */}
+          {/* TARJETA ESPECIAL SOLUCIÓN VEXTOR */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.5 }}
-            className="p-8 rounded-3xl bg-primary flex flex-col justify-between"
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="p-6 sm:p-8 rounded-2xl bg-primary text-v-dark-constant flex flex-col justify-between shadow-xl"
           >
             <div>
-              <h3 className="text-2xl font-bold text-v-dark-constant mb-4">Vextor es la solución que su empresa necesita.</h3>
-              <p className="text-v-dark-constant/80 font-medium leading-relaxed">
-                Centralizamos toda su operación en una plataforma intuitiva, profesional y diseñada para el crecimiento.
+              <div className="w-12 h-12 rounded-xl bg-v-dark-constant/10 flex items-center justify-center mb-6">
+                <CheckCircle2 size={26} className="text-v-dark-constant" />
+              </div>
+              <h3 className="text-2xl font-extrabold mb-4 leading-snug">
+                VEXTOR centraliza y digitaliza toda su flota.
+              </h3>
+              <p className="font-medium text-v-dark-constant/80 text-sm leading-relaxed">
+                Elimine el desorden administrativo. Integre vehículos, conductores, rutas y mantenimientos en una sola plataforma profesional.
               </p>
             </div>
-            <button className="mt-8 bg-v-dark text-v-white font-bold py-4 px-6 rounded-xl flex items-center justify-center hover:bg-v-dark/90 transition-colors">
-              Descubrir cómo
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </button>
+
+            <Link to="/register" className="mt-8">
+              <button className="w-full bg-v-dark-constant text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center hover:bg-v-dark-constant/90 transition-colors shadow-md">
+                Comenzar Transformación
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </button>
+            </Link>
           </motion.div>
+
         </div>
       </div>
     </section>
