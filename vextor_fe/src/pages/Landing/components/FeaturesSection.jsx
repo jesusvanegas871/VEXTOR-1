@@ -2,178 +2,234 @@ import { motion } from 'framer-motion';
 import {
   Truck,
   Users,
-  MapPin,
+  Route,
   Wrench,
-  BarChart3,
   Bell,
+  BarChart3,
+  CheckCircle2,
+  Zap,
   ShieldCheck,
-  Smartphone
+  TrendingUp,
+  FolderCheck,
+  Clock
 } from 'lucide-react';
 
 /**
  * FeaturesSection Component
  *
  * Responsabilidad:
- * Mostrar las funcionalidades clave de la plataforma Vextor.
+ * Presentar las 6 funcionalidades principales de VEXTOR y comunicar los beneficios operativos reales
+ * para las empresas de transporte especial.
  *
  * Funcionalidades:
- * * Cuadrícula de características con iconos y descripciones.
- * * Efectos de hover para resaltar capacidades técnicas.
- * * Panel de previsualización de interfaz para demostrar UX/UI.
- * * Listado de beneficios específicos de usabilidad.
+ * * id="funciones" para navegación interna.
+ * * Tarjetas de funciones principales: Gestión de vehículos, Conductores, Rutas, Mantenimiento, Alertas y Reportes.
+ * * id="beneficios" para resaltar valor operativo sin métricas ficticias.
  */
-const features = [
+const mainFeatures = [
   {
     title: "Gestión de Vehículos",
-    description: "Control total de su flota: documentos, seguros, estado y especificaciones técnicas en un solo lugar.",
+    description: "Control centralizado de especificaciones, documentos obligatorios (SOAT, tecno-mecánica), seguros y estado operativo.",
     icon: Truck
   },
   {
-    title: "Control de Conductores",
-    description: "Expedientes digitales, vencimiento de licencias, capacitaciones y seguimiento de desempeño.",
+    title: "Gestión de Conductores",
+    description: "Expedientes digitales, control de licencias de conducción, asignaciones a unidades y seguimiento de actividad.",
     icon: Users
   },
   {
-    title: "Optimización de Rutas",
-    description: "Planifique y asigne rutas de manera inteligente. Visualice recorridos y estados en tiempo real.",
-    icon: MapPin
+    title: "Gestión de Rutas",
+    description: "Programación inteligente de itinerarios, asignación de origen-destino y monitoreo de cumplimiento operacional.",
+    icon: Route
   },
   {
-    title: "Mantenimiento Inteligente",
-    description: "Alertas automáticas para cambios de aceite, revisiones técnico-mecánicas y preventivos.",
+    title: "Mantenimiento Preventivo",
+    description: "Programación de alertas automáticas por kilometraje o periodicidad para revisiones técnicas y preventivas.",
     icon: Wrench
   },
   {
-    title: "Reportes Avanzados",
-    description: "Tome decisiones basadas en datos reales. Gráficos de eficiencia, costos y operatividad.",
-    icon: BarChart3
-  },
-  {
     title: "Sistema de Alertas",
-    description: "Notificaciones instantáneas sobre vencimientos, excesos de velocidad o novedades en ruta.",
+    description: "Notificaciones proactivas de vencimientos documentales, novedades de servicio y eventos críticos en carretera.",
     icon: Bell
   },
   {
-    title: "Seguridad de Datos",
-    description: "Información protegida con estándares bancarios. Roles de usuario y permisos granulares.",
+    title: "Reportes Operativos",
+    description: "Consolidación de datos reales en informes claros de utilización de la flota, historial y costos operativos.",
+    icon: BarChart3
+  }
+];
+
+const realBenefits = [
+  {
+    title: "Menos procesos manuales",
+    desc: "Sustituya planillas de papel e hilos informales de chat por un flujo de trabajo digital automatizado.",
+    icon: Zap
+  },
+  {
+    title: "Mayor control de la flota",
+    desc: "Visibilidad permanente sobre la disponibilidad, estado y asignaciones de cada vehículo de la empresa.",
     icon: ShieldCheck
   },
   {
-    title: "Acceso Multiplataforma",
-    description: "Gestione su empresa desde cualquier lugar. Compatible con móviles, tablets y ordenadores.",
-    icon: Smartphone
+    title: "Mejor seguimiento operativo",
+    desc: "Conozca con precisión el avance de las rutas y el cumplimiento de los compromisos de transporte.",
+    icon: TrendingUp
+  },
+  {
+    title: "Mantenimiento organizado",
+    desc: "Evite varadas imprevistas en ruta manteniendo al día el plan preventivo de cada unidad.",
+    icon: Wrench
+  },
+  {
+    title: "Información centralizada",
+    desc: "Documentos, hojas de vida y registros organizados en un solo repositorio seguro accesible 24/7.",
+    icon: FolderCheck
+  },
+  {
+    title: "Mayor seguridad operacional",
+    desc: "Garantice que únicamente conductores capacitados con licencias vigentes operen los vehículos.",
+    icon: Clock
   }
 ];
 
 const FeaturesSection = () => {
   return (
-    <section id="funciones" className="py-24 bg-v-dark-soft relative">
-      <div className="container mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-primary font-bold tracking-widest uppercase text-sm mb-4"
-          >
-            Funcionalidades Premium
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold text-v-white mb-6"
-          >
-            Todo lo que necesita para <span className="text-primary">dominar su operación.</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-v-gray"
-          >
-            Vextor ha sido construido escuchando las necesidades reales de los jefes de flota y coordinadores operativos.
-          </motion.p>
-        </div>
+    <div className="bg-v-dark transition-colors duration-300">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
+      {/* SECCIÓN FUNCIONES (#funciones) */}
+      <section id="funciones" className="py-20 lg:py-28 bg-v-dark-soft/50 border-y border-v-dark-border/60">
+        <div className="container mx-auto px-4 sm:px-6">
+
+          <div className="text-center max-w-3xl mx-auto mb-16">
             <motion.div
-              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            >
+              Funcionalidades Clave
+            </motion.div>
+
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-              className="p-6 rounded-2xl bg-v-dark border border-v-dark-border hover:border-primary/30 transition-all duration-300 group"
+              transition={{ delay: 0.1 }}
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 tracking-tight"
             >
-              <div className="w-12 h-12 rounded-xl bg-v-dark-soft text-v-white flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-v-dark-constant transition-colors duration-300">
-                <feature.icon size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-v-white mb-3">{feature.title}</h3>
-              <p className="text-v-gray text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+              Todo lo que necesita para <span className="text-primary">gestionar su flota.</span>
+            </motion.h2>
 
-        {/* Feature Preview Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-24 bg-v-dark border border-v-dark-border rounded-[40px] overflow-hidden"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            <div className="p-12 md:p-20 flex flex-col justify-center">
-              <h3 className="text-3xl md:text-4xl font-bold text-v-white mb-6">
-                Interfaz diseñada para la <span className="text-primary">productividad.</span>
-              </h3>
-              <p className="text-v-gray text-lg mb-8 leading-relaxed">
-                No pierda tiempo buscando información. Nuestra interfaz estilo "SaaS Premium" permite acceder a cualquier dato en menos de 3 clics.
-              </p>
-              <ul className="space-y-4">
-                {[
-                  "Dashboard intuitivo con métricas clave",
-                  "Buscador global ultra-rápido",
-                  "Gestión de archivos por arrastrar y soltar",
-                  "Modo oscuro optimizado para la vista"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-v-white/80">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center">
-                      <ShieldCheck size={12} />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-linear-to-br from-primary/10 to-transparent p-12 flex items-center justify-center">
-              <div className="relative w-full max-w-md aspect-square bg-v-dark-soft rounded-3xl border border-v-dark-border shadow-2xl overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-                <div className="relative p-8 h-full flex flex-col">
-                  <div className="flex justify-between items-center mb-8">
-                    <div className="h-6 w-24 bg-v-dark-border rounded-full" />
-                    <div className="h-10 w-10 rounded-full bg-primary" />
-                  </div>
-                  <div className="space-y-4 flex-1">
-                    <div className="h-20 bg-v-dark border border-v-dark-border rounded-2xl" />
-                    <div className="h-20 bg-v-dark border border-v-dark-border rounded-2xl" />
-                    <div className="h-20 bg-v-dark border border-v-dark-border rounded-2xl" />
-                  </div>
-                  <div className="mt-8 flex gap-4">
-                    <div className="h-10 flex-1 bg-v-dark-border rounded-xl" />
-                    <div className="h-10 w-10 bg-v-dark-border rounded-xl" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-base sm:text-lg text-v-gray leading-relaxed"
+            >
+              VEXTOR integra los seis pilares fundamentales que toda empresa de transporte requiere para operar con máxima eficiencia.
+            </motion.p>
           </div>
-        </motion.div>
-      </div>
-    </section>
+
+          {/* GRID DE 6 FUNCIONES */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {mainFeatures.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08, duration: 0.5 }}
+                className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-primary/40 transition-all duration-300 shadow-xs hover:shadow-md group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-v-dark-soft border border-v-dark-border text-v-white flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-v-dark-constant group-hover:border-primary transition-colors duration-300">
+                  <feature.icon size={24} />
+                </div>
+
+                <h3 className="text-xl font-bold text-v-white mb-3 group-hover:text-primary transition-colors">
+                  {feature.title}
+                </h3>
+
+                <p className="text-v-gray text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* SECCIÓN BENEFICIOS (#beneficios) */}
+      <section id="beneficios" className="py-20 lg:py-28 bg-v-dark relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6">
+
+          <div className="max-w-3xl mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            >
+              Beneficios Reales
+            </motion.div>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 leading-tight tracking-tight"
+            >
+              Impacto directo en la <span className="text-primary">eficiencia de su transporte.</span>
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-base sm:text-lg text-v-gray leading-relaxed font-normal"
+            >
+              Sin promesas exageradas ni métricas ficticias. VEXTOR genera orden operativo, previsibilidad y ahorro administrativo tangible desde el primer día.
+            </motion.p>
+          </div>
+
+          {/* GRID DE BENEFICIOS REALES */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {realBenefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08, duration: 0.5 }}
+                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border/80 hover:border-primary/30 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <benefit.icon size={22} />
+                  </div>
+                  <h3 className="text-lg font-bold text-v-white">
+                    {benefit.title}
+                  </h3>
+                </div>
+
+                <p className="text-v-gray text-sm leading-relaxed">
+                  {benefit.desc}
+                </p>
+
+                <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-primary">
+                  <CheckCircle2 size={16} />
+                  Garantizado por VEXTOR
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+    </div>
   );
 };
 
