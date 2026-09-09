@@ -4,7 +4,7 @@ Endpoints para rutas del conductor
 from uuid import UUID
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload, joinedload
 
 from app.database import get_db
 from app.api.routes.auth import get_current_user
@@ -47,8 +47,10 @@ def get_driver_routes(
     sync_driver_status(driver.id_conductor, db)
     db.refresh(driver)
 
-    # Obtener rutas asignadas a este conductor
-    asignaciones = db.query(AsignacionConductor).filter(
+    # Obtener rutas asignadas a este conductor cargando eficientemente las relaciones
+    asignaciones = db.query(AsignacionConductor).options(
+        joinedload(AsignacionConductor.ruta).selectinload(Ruta.asignaciones_vehiculo).joinedload(AsignacionVehiculo.vehiculo)
+    ).filter(
         AsignacionConductor.id_conductor == driver.id_conductor
     ).all()
     
@@ -363,7 +365,10 @@ def get_active_tracking(
     Obtiene la lista de seguimientos activos en tiempo real para el panel de administración.
     Retorna un arreglo de objetos con información de la ruta, conductor, vehículo y coordenadas GPS.
     """
-    rutas_activas = db.query(Ruta).filter(
+    rutas_activas = db.query(Ruta).options(
+        selectinload(Ruta.asignaciones_conductor).joinedload(AsignacionConductor.conductor),
+        selectinload(Ruta.asignaciones_vehiculo).joinedload(AsignacionVehiculo.vehiculo)
+    ).filter(
         Ruta.estado_ruta.in_(["EN_PROCESO", "EN_RUTA", "SUSPENDIDA"])
     ).all()
 
@@ -375,16 +380,10 @@ def get_active_tracking(
             SeguimientoRuta.id_ruta == ruta.id_ruta
         ).first()
 
-        # Obtener conductor asignado
-        asig_cond = db.query(AsignacionConductor).filter(
-            AsignacionConductor.id_ruta == ruta.id_ruta
-        ).first()
+        asig_cond = ruta.asignaciones_conductor[0] if ruta.asignaciones_conductor else None
         conductor_obj = asig_cond.conductor if asig_cond and asig_cond.conductor else None
 
-        # Obtener vehículo asignado
-        asig_veh = db.query(AsignacionVehiculo).filter(
-            AsignacionVehiculo.id_ruta == ruta.id_ruta
-        ).first()
+        asig_veh = ruta.asignaciones_vehiculo[0] if ruta.asignaciones_vehiculo else None
         vehiculo_obj = asig_veh.vehiculo if asig_veh and asig_veh.vehiculo else None
 
         # Coordenadas por defecto (origen o Bogotá)

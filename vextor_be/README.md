@@ -108,7 +108,26 @@ La documentación interactiva OpenAPI (Swagger) estará disponible en: `http://l
 
 ---
 
-## 🧪 4. Ejecución de Pruebas
+## 🎯 4. Alcance del MVP y Trazabilidad con Historias de Usuario (HUS)
+
+El MVP de VEXTOR está enfocado específicamente en la **gestión y monitoreo de flotas fúnebres (operaciones exequiales)**, cubriendo los siguientes módulos y su relación directa con los endpoints del backend:
+
+### 4.1 Módulos y Trazabilidad de Endpoints API
+
+| Historia de Usuario (HU) | Funcionalidad del Backend | Endpoints HTTP / WS |
+| :--- | :--- | :--- |
+| **HU-01: Autenticación y Perfil** | Autenticación basada en JWT, control de acceso RBAC, gestión de perfil y reseteo de contraseña. | `POST /api/auth/login`<br>`POST /api/auth/register`<br>`GET /api/auth/me`<br>`PUT /api/auth/profile`<br>`POST /api/auth/forgot-password`<br>`POST /api/auth/reset-password` |
+| **HU-02: Gestión de Vehículos Fúnebres** | CRUD de vehículos exequiales (Carrozas, Acompañamiento, Logística), control de odómetro y validación de disponibilidad. | `GET /api/vehicles`<br>`POST /api/vehicles`<br>`PUT /api/vehicles/{id}`<br>`DELETE /api/vehicles/{id}` |
+| **HU-03: Gestión de Conductores** | Registro de conductores, vinculación con usuario, número de licencia y estado operativo. | `GET /api/drivers`<br>`POST /api/drivers`<br>`PUT /api/drivers/{id}`<br>`DELETE /api/drivers/{id}` |
+| **HU-04: Programación de Rutas Exequiales** | Asignación de servicios fúnebres (Cortejo, Traslado, Inhumación, Cremación), validación de disponibilidad estricta de vehículos y conductores. | `GET /api/routes`<br>`POST /api/routes`<br>`PUT /api/routes/{id}`<br>`DELETE /api/routes/{id}` |
+| **HU-05: Ejecución y Telemetría del Conductor** | Panel móvil para conductor: consulta de rutas asignadas, inicio/pausa/finalización de ruta y envío de coordenadas GPS. | `GET /api/routes/driver/my-routes`<br>`POST /api/routes/{id}/start`<br>`POST /api/routes/{id}/pause`<br>`POST /api/routes/{id}/finish`<br>`POST /api/routes/{id}/location` |
+| **HU-06: Mantenimiento Preventivo / Correctivo** | Programación de mantenimiento por kilometraje o fecha para prevenir fallas durante servicios exequiales. | `GET /api/maintenance`<br>`POST /api/maintenance`<br>`PUT /api/maintenance/{id}`<br>`DELETE /api/maintenance/{id}` |
+| **HU-07: Monitoreo en Tiempo Real y OSRM** | Cálculo de rutas óptimas con OSRM y recepción de ubicaciones mediante WebSocket para tracking en mapa. | `POST /api/routing/route`<br>`GET /api/routes/active-tracking`<br>`WS /ws/tracking` |
+| **HU-08: Métricas, Auditoría y Reportes** | Dashboard ejecutivo con KPIs en tiempo real, bitácora de auditoría inmutable y exportación de reportes en PDF/CSV/XLSX. | `GET /api/dashboard/stats`<br>`GET /api/activities`<br>`GET /api/reports/data`<br>`GET /api/reports/export` |
+
+---
+
+## 🧪 5. Ejecución de Pruebas
 
 Para ejecutar la suite de pruebas unitarias e integración con pytest en memoria:
 

@@ -10,7 +10,7 @@
 ## 1. INTRODUCCIÓN Y ALCANCE DEL SISTEMA
 
 ### 1.1 Introducción
-VEXTOR es una plataforma integral para la gestión operativa, control y seguimiento geográfico en tiempo real de flotas vehiculares y rutas de transporte. La plataforma permite coordinar conductores, vehículos, mantenimientos preventivos y correctivos, programación y ejecución de rutas con telemetría GPS, e inspección auditable de la actividad operativa.
+VEXTOR es una plataforma SaaS especializada en la gestión operativa, control y seguimiento geográfico en tiempo real de flotas fúnebres (servicios exequiales: cortejos, traslados, inhumaciones, cremaciones y servicios de protocolo). La plataforma permite coordinar conductores, vehículos exequiales (carrozas, acompañamiento y logística), mantenimientos preventivos y correctivos, programación y ejecución de rutas con telemetría GPS, e inspección auditable de la actividad operativa.
 
 El presente documento constituye la **documentación funcional oficial de VEXTOR**, elaborada mediante un análisis riguroso de extremo a extremo (*end-to-end*) sobre el código fuente del proyecto (frontend React 19, backend FastAPI Python 3.12, base de datos PostgreSQL/Supabase, motor de ruteo OSRM y WebSocket Server). Cada caso de uso, flujo de actividad, regla de negocio y restricción documentada corresponde estrictamente a la implementación ejecutable del sistema.
 
