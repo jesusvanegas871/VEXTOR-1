@@ -14,7 +14,7 @@ import { Button } from '../../../components/ui/Button';
  * * Badge "NUEVA ERA EN GESTIÓN DE FLOTAS" con indicador verde animado.
  * * Titular con propuesta de valor y destacado verde en "sola plataforma."
  * * Botones principales ("Comenzar Gratis" -> /register, "Ver Demo" -> Modal interactivo).
- * * Composición visual destacada de vehículos reales de transporte VEXTOR (Bus y Camión PNG).
+ * * Composición visual destacada de vehículos reales de transporte VEXTOR (Imagen compuesta).
  * * Modal explicativo para la Demo del producto.
  */
 const HeroSection = () => {
@@ -125,27 +125,14 @@ const HeroSection = () => {
             transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
             className="lg:col-span-6 xl:col-span-7 relative flex items-center justify-center mt-6 lg:mt-0"
           >
-            {/* Contenedor relativo sin fondos oscuros ni tarjetas para dejar que la transparencia PNG interactúe naturalmente */}
-            <div className="relative w-full max-w-2xl flex items-center justify-center min-h-[320px] sm:min-h-[420px]">
-
-              {/* CAMIÓN: Ligeramente detrás y desplazado hacia la derecha superior */}
+            <div className="relative flex w-full items-center justify-center">
               <motion.img
-                initial={{ opacity: 0, x: 40, y: -20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                src="/Camion-removebg.png"
-                alt="Camión de transporte VEXTOR"
-                className="absolute top-0 right-2 sm:right-6 w-[55%] sm:w-[58%] object-contain filter drop-shadow-xl z-0 select-none pointer-events-none"
-              />
-
-              {/* BUS: Vehículo principal en primer plano, más grande y prominente */}
-              <motion.img
-                initial={{ opacity: 0, x: -30, y: 20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                src="/Bus-removebg.png"
-                alt="Bus de transporte VEXTOR"
-                className="relative top-8 sm:top-12 left-0 sm:-left-4 w-[72%] sm:w-[75%] object-contain filter drop-shadow-2xl z-10 select-none pointer-events-none"
+                src="/vehiculos-hero.png"
+                alt="Vehículos de transporte VEXTOR"
+                className="w-full max-w-[850px] h-auto object-contain filter drop-shadow-2xl select-none pointer-events-none"
               />
             </div>
           </motion.div>
