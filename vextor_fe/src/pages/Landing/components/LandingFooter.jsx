@@ -6,13 +6,13 @@ import { Logo } from '../../../components/ui/Logo';
  * LandingFooter Component
  *
  * Responsabilidad:
- * Pie de página oficial de VEXTOR con id="contacto", enlaces navegables, datos corporativos y copyright.
+ * Pie de página oficial de VEXTOR con enlaces navegables, datos corporativos y copyright.
  */
 const LandingFooter = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer id="contacto" className="bg-v-dark-soft border-t border-v-dark-border pt-16 pb-12 transition-colors duration-300">
+    <footer className="bg-v-dark-soft border-t border-v-dark-border pt-16 pb-12 transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6">
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-16">
