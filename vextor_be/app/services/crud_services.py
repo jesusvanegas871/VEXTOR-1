@@ -4,7 +4,7 @@ Contiene la lógica de negocio para cada entidad
 """
 from uuid import UUID
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from fastapi import HTTPException
 
 from app.models import Vehiculo, Conductor, Ruta, Mantenimiento, Usuario, Empresa
@@ -262,14 +262,13 @@ class RouteService:
 
     @staticmethod
     def get_all(db: Session):
-        routes = db.query(Ruta).all()
+        routes = db.query(Ruta).options(
+            selectinload(Ruta.asignaciones_conductor),
+            selectinload(Ruta.asignaciones_vehiculo)
+        ).all()
         for r in routes:
-            asig_c = db.query(AsignacionConductor).filter(
-                AsignacionConductor.id_ruta == r.id_ruta
-            ).first()
-            asig_v = db.query(AsignacionVehiculo).filter(
-                AsignacionVehiculo.id_ruta == r.id_ruta
-            ).first()
+            asig_c = r.asignaciones_conductor[0] if r.asignaciones_conductor else None
+            asig_v = r.asignaciones_vehiculo[0] if r.asignaciones_vehiculo else None
             r.id_conductor = asig_c.id_conductor if asig_c else None
             r.id_vehiculo = asig_v.id_vehiculo if asig_v else None
             if r.id_conductor:
@@ -287,8 +286,16 @@ class RouteService:
         conductor_id = route_data.pop("id_conductor", None)
         vehicle_id = route_data.pop("id_vehiculo", None)
 
-        # Validar disponibilidad de vehículo
+        # Validar estado y disponibilidad de vehículo
         if vehicle_id:
+            vehicle = db.query(Vehiculo).filter(Vehiculo.id_vehiculo == vehicle_id).first()
+            if not vehicle:
+                raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+            if vehicle.estado_vehiculo in ("MANTENIMIENTO", "INACTIVO"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No se puede asignar el vehículo porque su estado actual es {vehicle.estado_vehiculo}."
+                )
             active_v = db.query(AsignacionVehiculo).join(Ruta).filter(
                 AsignacionVehiculo.id_vehiculo == vehicle_id,
                 Ruta.estado_ruta.in_(["PROGRAMADA", "EN_PROCESO"])
@@ -299,8 +306,16 @@ class RouteService:
                     detail="El vehículo seleccionado ya está asignado a una ruta activa."
                 )
 
-        # Validar disponibilidad de conductor
+        # Validar estado y disponibilidad de conductor
         if conductor_id:
+            conductor = db.query(Conductor).filter(Conductor.id_conductor == conductor_id).first()
+            if not conductor:
+                raise HTTPException(status_code=404, detail="Conductor no encontrado")
+            if conductor.estado_conductor in ("INACTIVO", "SUSPENDIDO", "NO_DISPONIBLE"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No se puede asignar el conductor porque su estado actual es {conductor.estado_conductor}."
+                )
             active_c = db.query(AsignacionConductor).join(Ruta).filter(
                 AsignacionConductor.id_conductor == conductor_id,
                 Ruta.estado_ruta.in_(["PROGRAMADA", "EN_PROCESO"])
@@ -370,8 +385,16 @@ class RouteService:
         conductor_id = route_data.pop("id_conductor", None)
         vehicle_id = route_data.pop("id_vehiculo", None)
 
-        # Validar disponibilidad de vehículo si cambia
+        # Validar estado y disponibilidad de vehículo si cambia
         if vehicle_id and vehicle_id != old_vehicle_id:
+            vehicle = db.query(Vehiculo).filter(Vehiculo.id_vehiculo == vehicle_id).first()
+            if not vehicle:
+                raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+            if vehicle.estado_vehiculo in ("MANTENIMIENTO", "INACTIVO"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No se puede asignar el vehículo porque su estado actual es {vehicle.estado_vehiculo}."
+                )
             active_v = db.query(AsignacionVehiculo).join(Ruta).filter(
                 AsignacionVehiculo.id_vehiculo == vehicle_id,
                 AsignacionVehiculo.id_ruta != route_id,
@@ -383,8 +406,16 @@ class RouteService:
                     detail="El vehículo seleccionado ya está asignado a otra ruta activa."
                 )
 
-        # Validar disponibilidad de conductor si cambia
+        # Validar estado y disponibilidad de conductor si cambia
         if conductor_id and conductor_id != old_driver_id:
+            conductor = db.query(Conductor).filter(Conductor.id_conductor == conductor_id).first()
+            if not conductor:
+                raise HTTPException(status_code=404, detail="Conductor no encontrado")
+            if conductor.estado_conductor in ("INACTIVO", "SUSPENDIDO", "NO_DISPONIBLE"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No se puede asignar el conductor porque su estado actual es {conductor.estado_conductor}."
+                )
             active_c = db.query(AsignacionConductor).join(Ruta).filter(
                 AsignacionConductor.id_conductor == conductor_id,
                 AsignacionConductor.id_ruta != route_id,

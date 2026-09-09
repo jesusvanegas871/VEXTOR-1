@@ -1,6 +1,6 @@
-# Historias de Usuario – VEXTOR
+# Historias de Usuario – VEXTOR (Flota Fúnebre / Exequial)
 
-> HU-01 a HU-05 corresponden al documento de HU existente. HU-06 a HU-15 son derivadas de los RF para completar la trazabilidad y deben ser validadas por el equipo.
+> Historias de Usuario de la Plataforma VEXTOR para la gestión de flotas fúnebres y servicios exequiales, mapeadas directamente a los endpoints del backend y validadas con el equipo.
 
 ## HU-01
 **Como Administrador, quiero registrar nuevos vehículos para mejorar la gestión operativa.**
@@ -84,13 +84,14 @@
 - [ ] Caso de error contemplado
 
 ## HU-10
-**Como Administrador, quiero crear rutas de transporte para mejorar la gestión operativa.**
+**Como Administrador, quiero crear rutas de transporte exequiales (Cortejo, Traslado, Inhumación, Cremación, Protocolo) para mejorar la gestión operativa.**
 
 **Origen:** RF-011
+**Endpoints BE:** `POST /api/routes`, `GET /api/routes`, `PUT /api/routes/{id}`, `DELETE /api/routes/{id}`
 
-- [ ] Funcionalidad implementada
-- [ ] Validaciones implementadas
-- [ ] Caso de error contemplado
+- [x] Funcionalidad implementada
+- [x] Validaciones implementadas (Disponibilidad estricta de vehículo y conductor)
+- [x] Caso de error contemplado
 
 ## HU-11
 **Como Administrador, quiero programar fechas y horarios de las rutas para mejorar la gestión operativa.**

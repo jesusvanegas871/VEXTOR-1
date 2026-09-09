@@ -2,22 +2,51 @@
 Punto de entrada principal de la aplicación VEXTOR
 Inicializa FastAPI, configura middlewares y registra routers
 """
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.core.config import settings
+from app.core.exceptions import setup_exception_handlers
 from app.database import engine, Base
 
 # Importar routers
 from app.api.routes import auth, crud, routing, audit, dashboard, driver_routes, reports
 from app.websocket import websocket_tracking_endpoint
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestor de ciclo de vida de la aplicación"""
+    # Inicialización en startup
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print("Table creation note:", e)
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE conductor DROP CONSTRAINT IF EXISTS chk_estado_conductor;"))
+            conn.execute(text("ALTER TABLE conductor ADD CONSTRAINT chk_estado_conductor CHECK (estado_conductor IN ('DISPONIBLE', 'EN_RUTA', 'NO_DISPONIBLE', 'ACTIVO', 'INACTIVO', 'SUSPENDIDO'));"))
+            conn.commit()
+    except Exception as e:
+        print("Constraint migration note:", e)
+
+    yield
+
+    # Limpieza en shutdown if required
+
+
 # Crear app
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.APP_DESCRIPTION,
+    lifespan=lifespan,
 )
+
+# Configurar excepciones globales
+setup_exception_handlers(app)
 
 # Configurar CORS
 app.add_middleware(
@@ -27,27 +56,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# ========== STARTUP EVENT ==========
-
-@app.on_event("startup")
-def startup_event():
-    """Inicializa la base de datos al iniciar la aplicación"""
-    # Crear tablas
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as e:
-        print("Table creation note:", e)
-
-    # Actualizar constraints de Conductor
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE conductor DROP CONSTRAINT IF EXISTS chk_estado_conductor;"))
-            conn.execute(text("ALTER TABLE conductor ADD CONSTRAINT chk_estado_conductor CHECK (estado_conductor IN ('DISPONIBLE', 'EN_RUTA', 'NO_DISPONIBLE', 'ACTIVO', 'INACTIVO', 'SUSPENDIDO'));"))
-            conn.commit()
-    except Exception as e:
-        print("Constraint migration note:", e)
 
 
 # ========== ROOT ENDPOINT ==========

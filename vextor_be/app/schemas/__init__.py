@@ -2,7 +2,7 @@
 Todos los schemas Pydantic para validación de requests/responses
 Consolidado en un único archivo para facilitar importación
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from uuid import UUID
 from datetime import date, datetime
 from typing import Literal, Optional, List
@@ -46,10 +46,8 @@ class RolCreate(RolBase):
 
 
 class Rol(RolBase):
+    model_config = ConfigDict(from_attributes=True)
     id_rol: UUID
-
-    class Config:
-        from_attributes = True
 
 
 # ========== USUARIO SCHEMAS ==========
@@ -78,17 +76,16 @@ class UsuarioUpdate(BaseModel):
 
 
 class Usuario(UsuarioBase):
+    model_config = ConfigDict(from_attributes=True)
     id_usuario: UUID
     id_rol: UUID
     fecha_creacion: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ========== SESION USUARIO SCHEMAS ==========
 
 class SesionUsuarioOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id_sesion: UUID
     id_usuario: UUID
     ip_origen: Optional[str] = None
@@ -98,9 +95,6 @@ class SesionUsuarioOut(BaseModel):
     ultima_actividad: datetime
     estado_sesion: str
     is_current: bool = False
-
-    class Config:
-        from_attributes = True
 
 
 class ChangePasswordRequest(BaseModel):
@@ -137,11 +131,9 @@ class ConductorUpdate(BaseModel):
 
 
 class Conductor(ConductorBase):
+    model_config = ConfigDict(from_attributes=True)
     id_conductor: UUID
     id_usuario: UUID
-
-    class Config:
-        from_attributes = True
 
 
 # ========== VEHICULO SCHEMAS ==========
@@ -179,10 +171,8 @@ class VehiculoUpdate(BaseModel):
 
 
 class Vehiculo(VehiculoBase):
+    model_config = ConfigDict(from_attributes=True)
     id_vehiculo: UUID
-
-    class Config:
-        from_attributes = True
 
 
 # ========== RUTA SCHEMAS ==========
@@ -196,6 +186,7 @@ class RutaBase(BaseModel):
     hora_inicio_real: Optional[datetime] = None
     hora_fin_real: Optional[datetime] = None
     estado_ruta: str = Field("PROGRAMADA", max_length=30)
+    tipo_servicio_exequial: Optional[str] = Field("CORTEJO_FUNERARIO", max_length=50)
     motivo_suspension: Optional[str] = Field(None, max_length=255)
 
 
@@ -213,18 +204,17 @@ class RutaUpdate(BaseModel):
     hora_inicio_real: Optional[datetime] = None
     hora_fin_real: Optional[datetime] = None
     estado_ruta: Optional[str] = Field(None, max_length=30)
+    tipo_servicio_exequial: Optional[str] = Field(None, max_length=50)
     motivo_suspension: Optional[str] = Field(None, max_length=255)
     id_conductor: Optional[UUID] = None
     id_vehiculo: Optional[UUID] = None
 
 
 class Ruta(RutaBase):
+    model_config = ConfigDict(from_attributes=True)
     id_ruta: UUID
     id_conductor: Optional[UUID] = None
     id_vehiculo: Optional[UUID] = None
-
-    class Config:
-        from_attributes = True
 
 
 # ========== MANTENIMIENTO SCHEMAS ==========
@@ -254,10 +244,8 @@ class MantenimientoUpdate(BaseModel):
 
 
 class Mantenimiento(MantenimientoBase):
+    model_config = ConfigDict(from_attributes=True)
     id_mantenimiento: UUID
-
-    class Config:
-        from_attributes = True
 
 
 # ========== EMPRESA SCHEMAS ==========
@@ -287,10 +275,8 @@ class EmpresaUpdate(BaseModel):
 
 
 class Empresa(EmpresaBase):
+    model_config = ConfigDict(from_attributes=True)
     id_empresa: UUID
-
-    class Config:
-        from_attributes = True
 
 
 # ========== ACTIVIDAD SCHEMAS ==========
@@ -310,13 +296,11 @@ class ActividadCreate(ActividadBase):
 
 
 class Actividad(ActividadBase):
+    model_config = ConfigDict(from_attributes=True)
     id_actividad: UUID
     id_usuario: Optional[UUID] = None
     nombres_usuario: Optional[str] = None
     fecha_hora: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ========== NOTIFICACION SCHEMAS ==========
@@ -332,13 +316,11 @@ class NotificacionCreate(NotificacionBase):
 
 
 class Notificacion(NotificacionBase):
+    model_config = ConfigDict(from_attributes=True)
     id_notificacion: UUID
     id_usuario: Optional[UUID] = None
     fecha_hora: datetime
     leido: bool
-
-    class Config:
-        from_attributes = True
 
 
 # ========== UBICACION / TRACKING SCHEMAS ==========
@@ -352,6 +334,7 @@ class UbicacionUpdate(BaseModel):
 
 
 class SeguimientoRutaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id_seguimiento: UUID
     id_ruta: UUID
     id_conductor: UUID
@@ -368,9 +351,6 @@ class SeguimientoRutaOut(BaseModel):
     codigo_ruta: Optional[str] = None
     origen: Optional[str] = None
     destino: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 # ========== ROUTING / OSRM SCHEMAS ==========

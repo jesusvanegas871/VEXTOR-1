@@ -8,10 +8,10 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload, joinedload
 
 from app.database import get_db
-from app.models import Vehiculo, Conductor, Ruta, Mantenimiento, Usuario, Reporte
+from app.models import Vehiculo, Conductor, Ruta, Mantenimiento, Usuario, Reporte, AsignacionConductor, AsignacionVehiculo
 from app.api.routes.auth import get_current_user
 from app.services.audit_service import AuditService
 
@@ -229,7 +229,10 @@ def fetch_filtered_report_data(
             })
 
     elif report_type == "routes":
-        query = db.query(Ruta)
+        query = db.query(Ruta).options(
+            selectinload(Ruta.asignaciones_conductor).joinedload(AsignacionConductor.conductor),
+            selectinload(Ruta.asignaciones_vehiculo).joinedload(AsignacionVehiculo.vehiculo)
+        )
         if status:
             query = query.filter(Ruta.estado_ruta == status)
         if search and search.strip():
@@ -278,7 +281,9 @@ def fetch_filtered_report_data(
             })
 
     elif report_type == "maintenances":
-        query = db.query(Mantenimiento)
+        query = db.query(Mantenimiento).options(
+            joinedload(Mantenimiento.vehiculo)
+        )
         if status:
             query = query.filter(Mantenimiento.estado_mantenimiento == status)
         if type_filter:
@@ -325,7 +330,9 @@ def fetch_filtered_report_data(
             start_bound = now - timedelta(days=30)
 
         # 1. Rutas
-        r_query = db.query(Ruta)
+        r_query = db.query(Ruta).options(
+            selectinload(Ruta.asignaciones_conductor).joinedload(AsignacionConductor.conductor)
+        )
         if start_bound:
             r_query = r_query.filter(Ruta.fecha_programada >= start_bound)
         for r in r_query.all():
