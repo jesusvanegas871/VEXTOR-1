@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Play, X, Truck, Users, Route, Wrench, Bell, BarChart3, CheckCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { useTheme } from '../../../context/ThemeContext';
 
 /**
  * HeroSection Component
@@ -11,14 +12,20 @@ import { Button } from '../../../components/ui/Button';
  * Sección principal comercial (Hero) de la Landing Page de VEXTOR.
  *
  * Funcionalidades:
+ * * Fondo de mapa urbano dinámico según el tema activo (Light/Dark).
+ * * Capa de degradado/overlay CSS para garantizar óptima legibilidad.
  * * Badge "NUEVA ERA EN GESTIÓN DE FLOTAS" con indicador verde animado.
  * * Titular con propuesta de valor y destacado verde en "sola plataforma."
  * * Botones principales ("Comenzar Gratis" -> /register, "Ver Demo" -> Modal interactivo).
- * * Composición visual destacada de vehículos reales de transporte VEXTOR (Imagen compuesta).
  * * Modal explicativo para la Demo del producto.
  */
 const HeroSection = () => {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const { theme } = useTheme();
+
+  const mapBgImage = theme === 'dark'
+    ? '/HeroMap/bogot_ciudad_dark.png'
+    : '/HeroMap/bogot_ciudad_light.png';
 
   const demoModules = [
     {
@@ -54,87 +61,87 @@ const HeroSection = () => {
   ];
 
   return (
-    <section id="inicio" className="relative pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-36 lg:pb-28 overflow-hidden bg-v-dark transition-colors duration-300">
-      {/* Elementos sutiles de fondo */}
-      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 blur-3xl rounded-full pointer-events-none -z-10" />
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-emerald-500/5 blur-3xl rounded-full pointer-events-none -z-10" />
+    <section id="inicio" className="relative pt-28 pb-20 md:pt-36 md:pb-28 lg:pt-40 lg:pb-32 overflow-hidden bg-v-dark transition-colors duration-300 min-h-[580px] sm:min-h-[640px] flex items-center">
+      {/* FONDO DE MAPA Y OVERLAYS DE LEGIBILIDAD */}
+      <div className="absolute inset-0 z-0 select-none pointer-events-none">
+        <img
+          src={mapBgImage}
+          alt="Mapa urbano VEXTOR"
+          className="w-full h-full object-cover object-center transition-opacity duration-500 opacity-90 dark:opacity-80"
+        />
 
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[500px]">
+        {/* Degradado horizontal para enfocar lectura en primer plano */}
+        <div className="absolute inset-0 bg-gradient-to-r from-v-dark via-v-dark/90 to-v-dark/40 dark:from-v-dark dark:via-v-dark/95 dark:to-v-dark/60" />
 
-          {/* COLUMNA IZQUIERDA (45% aproximadamente en desktop) */}
+        {/* Degradados verticales para suavizar bordes superior e inferior */}
+        <div className="absolute inset-0 bg-gradient-to-b from-v-dark/80 via-transparent to-v-dark" />
+      </div>
+
+      {/* CONTENIDO DEL HERO EN PRIMER PLANO */}
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        <div className="max-w-2xl lg:max-w-3xl">
+
+          {/* BADGE DEL HERO */}
           <motion.div
-            initial={{ opacity: 0, x: -25 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="lg:col-span-6 xl:col-span-5 z-10"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-primary text-xs font-bold uppercase tracking-wider mb-6"
           >
-            {/* BADGE DEL HERO */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
-              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-primary text-xs font-bold uppercase tracking-wider mb-6"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              NUEVA ERA EN GESTIÓN DE FLOTAS
-            </motion.div>
-
-            {/* TITULAR PRINCIPAL */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-v-white leading-[1.12] tracking-tight mb-6">
-              Gestione toda su <br className="hidden sm:inline" />
-              flota desde una <br className="hidden sm:inline" />
-              <span className="text-primary">sola plataforma.</span>
-            </h1>
-
-            {/* DESCRIPCIÓN */}
-            <p className="text-base sm:text-lg text-v-gray mb-8 max-w-xl leading-relaxed font-normal">
-              Controle vehículos, conductores, rutas y mantenimientos con una solución moderna diseñada para empresas de transporte especial.
-            </p>
-
-            {/* BOTONES DE ACCIÓN */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <Link to="/register" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base font-bold h-13 px-8 rounded-xl shadow-md group">
-                  Comenzar Gratis
-                  <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => setIsDemoModalOpen(true)}
-                className="w-full sm:w-auto h-13 px-6 text-v-white hover:text-primary gap-3 rounded-xl border border-v-dark-border/60 hover:border-primary/30"
-              >
-                <div className="w-7 h-7 rounded-full bg-v-gray/20 flex items-center justify-center shrink-0">
-                  <Play className="fill-current w-3.5 h-3.5 ml-0.5 text-v-white" />
-                </div>
-                <span className="font-semibold text-base">Ver Demo</span>
-              </Button>
-            </div>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            NUEVA ERA EN GESTIÓN DE FLOTAS
           </motion.div>
 
-          {/* COLUMNA DERECHA: COMPOSICIÓN VISUAL DE VEHÍCULOS (55% en desktop) */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
-            className="lg:col-span-6 xl:col-span-7 relative flex items-center justify-center mt-6 lg:mt-0"
+          {/* TITULAR PRINCIPAL */}
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-v-white leading-[1.12] tracking-tight mb-6"
           >
-            <div className="relative flex w-full items-center justify-center">
-              <motion.img
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                src="/vehiculos-hero.png"
-                alt="Vehículos de transporte VEXTOR"
-                className="w-full max-w-[850px] h-auto object-contain filter drop-shadow-2xl select-none pointer-events-none"
-              />
-            </div>
+            Gestione toda su <br className="hidden sm:inline" />
+            flota desde una <br className="hidden sm:inline" />
+            <span className="text-primary">sola plataforma.</span>
+          </motion.h1>
+
+          {/* DESCRIPCIÓN */}
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-base sm:text-lg text-v-gray mb-8 max-w-xl leading-relaxed font-normal"
+          >
+            Controle vehículos, conductores, rutas y mantenimientos con una solución moderna diseñada para empresas de transporte especial.
+          </motion.p>
+
+          {/* BOTONES DE ACCIÓN */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
+          >
+            <Link to="/register" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto text-base font-bold h-13 px-8 rounded-xl shadow-md group">
+                Comenzar Gratis
+                <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => setIsDemoModalOpen(true)}
+              className="w-full sm:w-auto h-13 px-6 text-v-white hover:text-primary gap-3 rounded-xl border border-v-dark-border/60 hover:border-primary/30 bg-v-dark-soft/40 backdrop-blur-xs"
+            >
+              <div className="w-7 h-7 rounded-full bg-v-gray/20 flex items-center justify-center shrink-0">
+                <Play className="fill-current w-3.5 h-3.5 ml-0.5 text-v-white" />
+              </div>
+              <span className="font-semibold text-base">Ver Demo</span>
+            </Button>
           </motion.div>
 
         </div>
