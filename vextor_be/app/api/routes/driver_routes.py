@@ -380,54 +380,71 @@ def get_active_tracking(
             SeguimientoRuta.id_ruta == ruta.id_ruta
         ).first()
 
-        asig_cond = ruta.asignaciones_conductor[0] if ruta.asignaciones_conductor else None
+        asig_cond = next(
+            (a for a in ruta.asignaciones_conductor if a.estado_asignacion == "ACTIVA"),
+            ruta.asignaciones_conductor[0] if ruta.asignaciones_conductor else None
+        )
         conductor_obj = asig_cond.conductor if asig_cond and asig_cond.conductor else None
 
-        asig_veh = ruta.asignaciones_vehiculo[0] if ruta.asignaciones_vehiculo else None
+        asig_veh = next(
+            (a for a in ruta.asignaciones_vehiculo if a.estado_asignacion == "ACTIVA"),
+            ruta.asignaciones_vehiculo[0] if ruta.asignaciones_vehiculo else None
+        )
         vehiculo_obj = asig_veh.vehiculo if asig_veh and asig_veh.vehiculo else None
 
         # Coordenadas por defecto (origen o Bogotá)
         lat, lng = 4.7110, -74.0721
         if seg and seg.latitud is not None and seg.longitud is not None:
-            lat = seg.latitud
-            lng = seg.longitud
+            try:
+                lat = float(seg.latitud)
+                lng = float(seg.longitud)
+            except (ValueError, TypeError):
+                pass
         elif ruta.origen and "," in ruta.origen:
             try:
                 parts = ruta.origen.split(",")
-                lat, lng = float(parts[0].strip()), float(parts[1].strip())
-            except ValueError:
+                if len(parts) == 2:
+                    lat, lng = float(parts[0].strip()), float(parts[1].strip())
+            except (ValueError, TypeError):
                 pass
 
         last_update = seg.ultima_actualizacion if seg and seg.ultima_actualizacion else now
         sec_elapsed = int((now - last_update).total_seconds()) if last_update else 0
         is_stale = sec_elapsed > 45
 
+        cond_nombre = "Sin Conductor"
+        if conductor_obj:
+            n_first = conductor_obj.nombre_conductor or ""
+            n_last = conductor_obj.apellido_conductor or ""
+            full_n = f"{n_first} {n_last}".strip()
+            cond_nombre = full_n if full_n else "Sin Conductor"
+
         result.append({
             "id_seguimiento": str(seg.id_seguimiento) if seg else str(ruta.id_ruta),
             "id_ruta": str(ruta.id_ruta),
-            "codigo_ruta": ruta.codigo_ruta,
-            "nombre_ruta": ruta.nombre_ruta,
-            "origen": ruta.origen,
-            "destino": ruta.destino,
+            "codigo_ruta": ruta.codigo_ruta or "",
+            "nombre_ruta": ruta.nombre_ruta or "",
+            "origen": ruta.origen or "",
+            "destino": ruta.destino or "",
             "estado_ruta": ruta.estado_ruta,
             "latitud": lat,
             "longitud": lng,
-            "velocidad": seg.velocidad if seg else 0.0,
-            "heading": seg.heading if seg else 0.0,
+            "velocidad": float(seg.velocidad) if seg and seg.velocidad is not None else 0.0,
+            "heading": float(seg.heading) if seg and seg.heading is not None else 0.0,
             "ultima_actualizacion": last_update.isoformat() if last_update else now.isoformat(),
             "segundos_transcurridos": sec_elapsed,
             "is_stale": is_stale,
             "conductor": {
                 "id_conductor": str(conductor_obj.id_conductor) if conductor_obj else None,
-                "nombre": f"{conductor_obj.nombre_conductor} {conductor_obj.apellido_conductor}" if conductor_obj else "Sin Conductor",
+                "nombre": cond_nombre,
                 "cedula": conductor_obj.cedula_conductor if conductor_obj else "",
                 "telefono": conductor_obj.telefono_conductor if conductor_obj else ""
             },
             "vehiculo": {
                 "id_vehiculo": str(vehiculo_obj.id_vehiculo) if vehiculo_obj else None,
-                "placa": vehiculo_obj.placa if vehiculo_obj else "N/A",
-                "marca": vehiculo_obj.marca if vehiculo_obj else "",
-                "modelo": vehiculo_obj.modelo if vehiculo_obj else ""
+                "placa": vehiculo_obj.placa if vehiculo_obj and vehiculo_obj.placa else "N/A",
+                "marca": vehiculo_obj.marca if vehiculo_obj and vehiculo_obj.marca else "",
+                "modelo": vehiculo_obj.modelo if vehiculo_obj and vehiculo_obj.modelo else ""
             }
         })
 

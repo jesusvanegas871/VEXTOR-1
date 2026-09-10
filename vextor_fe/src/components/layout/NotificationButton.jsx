@@ -109,7 +109,7 @@ const NotificationButton = () => {
       >
         <Bell size={20} className="group-hover:rotate-12 transition-transform" />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2.5 w-4 h-4 bg-primary text-v-dark-constant rounded-full border-2 border-v-dark flex items-center justify-center text-[9px] font-black leading-none animate-in zoom-in">
+          <span className="absolute top-2 right-2.5 w-4 h-4 bg-primary text-white rounded-full border-2 border-v-dark flex items-center justify-center text-[9px] font-black leading-none animate-in zoom-in">
             {unreadCount}
           </span>
         )}

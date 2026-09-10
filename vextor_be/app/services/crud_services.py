@@ -267,14 +267,16 @@ class RouteService:
             selectinload(Ruta.asignaciones_vehiculo)
         ).all()
         for r in routes:
-            asig_c = r.asignaciones_conductor[0] if r.asignaciones_conductor else None
-            asig_v = r.asignaciones_vehiculo[0] if r.asignaciones_vehiculo else None
+            asig_c = next(
+                (a for a in r.asignaciones_conductor if a.estado_asignacion == "ACTIVA"),
+                r.asignaciones_conductor[0] if r.asignaciones_conductor else None
+            )
+            asig_v = next(
+                (a for a in r.asignaciones_vehiculo if a.estado_asignacion == "ACTIVA"),
+                r.asignaciones_vehiculo[0] if r.asignaciones_vehiculo else None
+            )
             r.id_conductor = asig_c.id_conductor if asig_c else None
             r.id_vehiculo = asig_v.id_vehiculo if asig_v else None
-            if r.id_conductor:
-                sync_driver_status(r.id_conductor, db)
-            if r.id_vehiculo:
-                sync_vehicle_status(r.id_vehiculo, db)
         return routes
 
     @staticmethod

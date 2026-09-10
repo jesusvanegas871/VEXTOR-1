@@ -493,7 +493,7 @@ const Settings = () => {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-24 right-6 z-50 flex items-center gap-3 bg-emerald-500 text-v-dark-constant font-semibold px-4 py-3.5 rounded-xl shadow-2xl shadow-emerald-500/20"
+            className="fixed top-24 right-6 z-50 flex items-center gap-3 bg-emerald-500 text-slate-950 font-semibold px-4 py-3.5 rounded-xl shadow-2xl shadow-emerald-500/20"
           >
             <Check size={18} strokeWidth={3} />
             <span>{successMessage}</span>

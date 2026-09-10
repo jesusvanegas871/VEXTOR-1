@@ -102,16 +102,33 @@ const Routes = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const rData = await routeService.getRoutes();
-      const dData = await driverService.getDrivers();
-      const vData = await vehicleService.getVehicles();
+      const [rData, dData, vData] = await Promise.all([
+        routeService.getRoutes().catch(err => {
+          console.error('Error loading routes:', err);
+          return null;
+        }),
+        driverService.getDrivers().catch(err => {
+          console.error('Error loading drivers:', err);
+          return [];
+        }),
+        vehicleService.getVehicles().catch(err => {
+          console.error('Error loading vehicles:', err);
+          return [];
+        })
+      ]);
 
-      setDrivers(dData);
-      setVehicles(vData);
-      setRoutes(rData);
+      if (rData === null) {
+        showFeedback('error', 'Error al cargar las rutas desde el servidor.');
+        setRoutes([]);
+      } else {
+        setRoutes(Array.isArray(rData) ? rData : []);
+      }
 
-      const availableDrivers = dData.filter(d => d.estado_conductor === 'DISPONIBLE' || d.estado_conductor === 'ACTIVO');
-      const availableVehicles = vData.filter(v => v.estado_vehiculo === 'DISPONIBLE');
+      setDrivers(Array.isArray(dData) ? dData : []);
+      setVehicles(Array.isArray(vData) ? vData : []);
+
+      const availableDrivers = (dData || []).filter(d => d.estado_conductor === 'DISPONIBLE' || d.estado_conductor === 'ACTIVO');
+      const availableVehicles = (vData || []).filter(v => v.estado_vehiculo === 'DISPONIBLE');
 
       setFormData(prev => ({
         ...prev,
@@ -148,7 +165,11 @@ const Routes = () => {
     // Setup WebSocket for live updates
     let ws = null;
     try {
-      ws = new WebSocket(`${WS_BASE_URL}/ws/tracking`);
+      const storedToken = localStorage.getItem('vextor_auth_token');
+      const wsUrl = storedToken
+        ? `${WS_BASE_URL}/ws/tracking?token=${encodeURIComponent(storedToken)}`
+        : `${WS_BASE_URL}/ws/tracking`;
+      ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data);
@@ -480,7 +501,7 @@ const Routes = () => {
             className={cn(
               "px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2",
               activeTab === 'gestion'
-                ? "bg-primary text-v-dark-constant shadow-md"
+                ? "bg-primary text-white shadow-md"
                 : "text-v-gray hover:text-v-white hover:bg-v-dark-border/40"
             )}
           >
@@ -492,7 +513,7 @@ const Routes = () => {
             className={cn(
               "px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 relative",
               activeTab === 'tracking'
-                ? "bg-primary text-v-dark-constant shadow-md"
+                ? "bg-primary text-white shadow-md"
                 : "text-v-gray hover:text-v-white hover:bg-v-dark-border/40"
             )}
           >
@@ -659,7 +680,7 @@ const Routes = () => {
                   {routeInfo.instructions && routeInfo.instructions.length > 0 && (
                     <button
                       onClick={() => setIsIndicationsOpen(!isIndicationsOpen)}
-                      className="px-3.5 py-1.5 bg-primary text-v-dark-constant rounded-xl text-xs font-bold hover:bg-emerald-600 cursor-pointer flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center"
+                      className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-emerald-600 cursor-pointer flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center"
                     >
                       <Navigation size={13} className="rotate-45" />
                       {isIndicationsOpen ? 'Ocultar indicaciones' : 'Ver indicaciones'}
