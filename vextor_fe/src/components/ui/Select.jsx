@@ -12,14 +12,14 @@ const getStatusConfig = (value, label) => {
     val === 'DISPONIBLE' || val === 'ACTIVO' || val === 'COMPLETADO' || val === 'COMPLETADA' ||
     lbl === 'DISPONIBLE' || lbl === 'ACTIVO' || lbl === 'COMPLETADO' || lbl === 'COMPLETADA'
   ) {
-    return { dotClass: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' };
+    return { dotClass: 'bg-emerald-500' };
   }
 
   // En Ruta -> Blue
   if (
     val === 'EN_RUTA' || lbl === 'EN RUTA'
   ) {
-    return { dotClass: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' };
+    return { dotClass: 'bg-blue-500' };
   }
 
   // Mantenimiento / Suspendido / En Proceso / Programado / Programada -> Orange/Amber
@@ -27,7 +27,7 @@ const getStatusConfig = (value, label) => {
     val === 'MANTENIMIENTO' || val === 'SUSPENDIDO' || val === 'EN_PROCESO' || val === 'PROGRAMADO' || val === 'PROGRAMADA' ||
     lbl === 'MANTENIMIENTO' || lbl === 'SUSPENDIDO' || lbl === 'EN PROCESO' || lbl === 'PROGRAMADO' || lbl === 'PROGRAMADA'
   ) {
-    return { dotClass: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' };
+    return { dotClass: 'bg-amber-500' };
   }
 
   // Inactivo / Cancelado / Cancelada / Suspendida -> Red
@@ -35,7 +35,7 @@ const getStatusConfig = (value, label) => {
     val === 'INACTIVO' || val === 'CANCELADO' || val === 'CANCELADA' || val === 'SUSPENDIDA' ||
     lbl === 'INACTIVO' || lbl === 'CANCELADO' || lbl === 'CANCELADA' || lbl === 'SUSPENDIDA'
   ) {
-    return { dotClass: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' };
+    return { dotClass: 'bg-red-500' };
   }
 
   return null;
@@ -169,7 +169,7 @@ const Select = React.forwardRef(({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -4 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute left-0 right-0 z-100 mt-2 max-h-60 overflow-y-auto rounded-xl border border-v-dark-border bg-v-dark-soft/95 backdrop-blur-md p-1.5 shadow-xl shadow-black/40 custom-scrollbar focus:outline-none"
+            className="absolute left-0 right-0 z-100 mt-2 max-h-60 overflow-y-auto rounded-xl border border-v-dark-border bg-v-dark-soft/95 backdrop-blur-md p-1.5 shadow-xl shadow-black/10 dark:shadow-black/35 custom-scrollbar focus:outline-none"
             role="listbox"
           >
             <div className="flex flex-col gap-1">

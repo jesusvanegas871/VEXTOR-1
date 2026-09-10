@@ -51,12 +51,17 @@ class Settings:
     )
 
     # ========== CORS ==========
-    CORS_ORIGINS: list = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost",
-        "http://localhost:80",
-    ]
+    CORS_ORIGINS: list = (
+        [o.strip() for o in os.getenv("CORS_ORIGINS").split(",") if o.strip()]
+        if os.getenv("CORS_ORIGINS")
+        else [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost",
+            "http://localhost:80",
+            "http://localhost:3000",
+        ]
+    )
 
     # ========== APP ==========
     APP_NAME: str = "Vextor API"

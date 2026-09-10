@@ -207,7 +207,7 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => navigate('/routes')}
-              className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-v-dark-constant rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] active:scale-95 cursor-pointer"
             >
               <Activity size={16} /> Mapa de Rastreo
             </button>

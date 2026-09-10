@@ -19,7 +19,6 @@ class Ruta(Base):
     hora_inicio_real = Column(DateTime, nullable=True)
     hora_fin_real = Column(DateTime, nullable=True)
     estado_ruta = Column(String(30), nullable=False, default="PROGRAMADA")
-    tipo_servicio_exequial = Column(String(50), nullable=True, default="CORTEJO_FUNERARIO")
     motivo_suspension = Column(String(255), nullable=True)
 
     asignaciones_conductor = relationship("AsignacionConductor", back_populates="ruta")

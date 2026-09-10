@@ -24,13 +24,13 @@ const Badge = React.forwardRef(({
   ...props
 }, ref) => {
   const variants = {
-    success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    info: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    danger: 'bg-red-500/10 text-red-400 border-red-500/20',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    success: 'bg-emerald-500/10 text-emerald-700 border-emerald-600/20 dark:text-emerald-300',
+    info: 'bg-blue-500/10 text-blue-700 border-blue-600/20 dark:text-blue-300',
+    warning: 'bg-amber-500/12 text-amber-800 border-amber-600/20 dark:text-amber-300',
+    danger: 'bg-red-500/10 text-red-700 border-red-600/20 dark:text-red-300',
+    purple: 'bg-purple-500/10 text-purple-700 border-purple-600/20 dark:text-purple-300',
     neutral: 'bg-v-dark-border/40 text-v-gray border-v-dark-border',
-    primary: 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+    primary: 'bg-primary/10 text-primary border-primary/20'
   };
 
   const dotColors = {
