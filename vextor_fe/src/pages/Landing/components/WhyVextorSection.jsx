@@ -6,53 +6,51 @@ import {
   Layers,
   ShieldAlert,
   LineChart,
-  CheckCircle2,
-  Sparkles
+  CheckCircle2
 } from 'lucide-react';
 
 /**
  * WhyVextorSection Component
  *
  * Responsabilidad:
- * Comunicar la propuesta de valor diferenciadora de VEXTOR frente a soluciones genéricas.
- * ID: #por-que-vextor
+ * Comunicar la propuesta de valor diferenciadora de VEXTOR.
  */
 const differentiators = [
   {
-    title: "Diseñado para transporte especial",
-    desc: "A diferencia de softwares genéricos de rastreo GPS, VEXTOR entiende la normatividad, documentación obligatoria y gestión de itinerarios de empresas de transporte de pasajeros.",
+    title: "Especializado en gestión de flotas",
+    desc: "VEXTOR entiende la normatividad, documentación obligatoria y gestión de itinerarios requerida por las empresas de transporte.",
     icon: Bus
   },
   {
     title: "Información 100% centralizada",
-    desc: "Elimine los silos de datos. Vehículos, conductores, mantenimientos y rutas conviven en una plataforma unificada accesible desde cualquier lugar.",
+    desc: "Elimine los silos de datos. Vehículos, conductores, mantenimientos y rutas conviven en una plataforma unificada en la nube.",
     icon: Cloud
   },
   {
     title: "Interfaz amigable e intuitiva",
-    desc: "Diseñada pensando en la usabilidad real. Su equipo administrativo y sus conductores comenzarán a operar en cuestión de minutos sin extensas capacitaciones.",
+    desc: "Diseñada pensando en la usabilidad real. Su equipo administrativo comenzará a operar en cuestión de minutos.",
     icon: Layout
   },
   {
     title: "Gestión integral de la operación",
-    desc: "Desde la ficha técnica del vehículo hasta la asignación del conductor y la alerta de mantenimiento en taller. Todo el ciclo operativo cubierto.",
+    desc: "Desde la ficha técnica del vehículo hasta la asignación del conductor y la alerta de mantenimiento en taller.",
     icon: Layers
   },
   {
     title: "Enfoque preventivo proactivo",
-    desc: "Plataforma construida para prevenir problemas (inmovilizaciones, multas, varadas) en lugar de simplemente reaccionar ante las crisis.",
+    desc: "Plataforma construida para prevenir inmovilizaciones, multas y varadas en lugar de reaccionar ante las crisis.",
     icon: ShieldAlert
   },
   {
-    title: "Información para mejores decisiones",
-    desc: "Datos estructurados que le otorgan visibilidad real sobre la rentabilidad de cada unidad, costos de taller y eficiencia de su flota.",
+    title: "Información para tomar decisiones",
+    desc: "Datos estructurados que le otorgan visibilidad real sobre la rentabilidad de cada unidad y costos de taller.",
     icon: LineChart
   }
 ];
 
 const WhyVextorSection = () => {
   return (
-    <section id="por-que-vextor" className="py-20 lg:py-28 bg-v-dark-soft/40 border-y border-v-dark-border/60 transition-colors duration-300 relative overflow-hidden">
+    <section id="por-que-vextor" className="py-20 lg:py-28 bg-v-dark border-b border-v-dark-border transition-colors duration-300 relative overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
         {/* ENCABEZADO */}
@@ -61,9 +59,8 @@ const WhyVextorSection = () => {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold uppercase tracking-wider mb-4"
           >
-            <Sparkles size={16} />
             Diferenciación B2B
           </motion.div>
 
@@ -71,9 +68,9 @@ const WhyVextorSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 tracking-tight leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-tight"
           >
-            ¿Por qué las empresas eligen <span className="text-primary">VEXTOR?</span>
+            ¿Por qué las empresas eligen <span className="text-[#124A2F] dark:text-[#A6C98F]">VEXTOR?</span>
           </motion.h2>
 
           <motion.p
@@ -81,13 +78,13 @@ const WhyVextorSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto"
+            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto font-normal"
           >
-            Descubra las razones por las que VEXTOR es el socio tecnológico ideal para elevar el estándar de control de su empresa de transporte especial.
+            Descubra las razones por las que VEXTOR es el socio tecnológico ideal para elevar el estándar de control de su empresa.
           </motion.p>
         </div>
 
-        {/* GRID DE DIFERENCIADORES */}
+        {/* GRID DE DIFERENCIADORES (Cards 12-16px radius = rounded-2xl) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {differentiators.map((item, index) => {
             const Icon = item.icon;
@@ -98,25 +95,25 @@ const WhyVextorSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08, duration: 0.5 }}
-                className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-primary/40 transition-all duration-300 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 shadow-xs hover:shadow-md group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Icon size={24} />
+                  <div className="w-10 h-10 rounded-xl bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
+                    <Icon size={20} />
                   </div>
 
-                  <h3 className="text-xl font-bold text-v-white mb-3 group-hover:text-primary transition-colors">
+                  <h3 className="text-lg font-bold text-v-white mb-3 group-hover:text-[#124A2F] dark:group-hover:text-[#A6C98F] transition-colors">
                     {item.title}
                   </h3>
 
-                  <p className="text-v-gray text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-v-gray text-xs sm:text-sm leading-relaxed mb-6 font-normal">
                     {item.desc}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-v-dark-border/80 flex items-center gap-2 text-xs font-bold text-primary">
-                  <CheckCircle2 size={16} />
-                  <span>Factor Diferenciador VEXTOR</span>
+                <div className="pt-4 border-t border-v-dark-border flex items-center gap-2 text-xs font-semibold text-[#124A2F] dark:text-[#A6C98F]">
+                  <CheckCircle2 size={15} />
+                  <span>Diferenciador VEXTOR</span>
                 </div>
               </motion.div>
             );
