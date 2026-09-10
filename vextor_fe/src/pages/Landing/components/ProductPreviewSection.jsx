@@ -12,10 +12,17 @@ import {
   Clock,
   ShieldCheck,
   ChevronRight,
-  TrendingUp,
-  MapPin,
-  Calendar
+  MapPin
 } from 'lucide-react';
+
+import {
+  mockVehiclesData,
+  mockDriversData,
+  mockRoutesData,
+  mockMaintenanceData,
+  mockAlertsData,
+  mockReportsData,
+} from '../mockData';
 
 /**
  * ProductPreviewSection Component
@@ -23,6 +30,10 @@ import {
  * Responsabilidad:
  * Sección de demostración visual e interactiva del producto VEXTOR.
  * Permite al cliente B2B visualizar el aspecto y flujo de trabajo real de su operación.
+ *
+ * ⚠️ AISLAMIENTO DE DATOS:
+ * Utiliza única y exclusivamente datos ficticios (mock data) importados desde `mockData.js`.
+ * No se conecta a backend, base de datos, sesiones ni APIs reales.
  */
 const ProductPreviewSection = () => {
   const [activeTab, setActiveTab] = useState('vehicles');
@@ -152,79 +163,71 @@ const ProductPreviewSection = () => {
                       <p className="text-xs sm:text-sm text-v-gray">Control técnico y documental de cada unidad de transporte especial.</p>
                     </div>
                     <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
-                      18 Vehículos Registrados
+                      {mockVehiclesData.summary.totalRegistered} Vehículos Registrados
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Tarjeta 1 */}
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-mono text-sm font-extrabold text-v-white bg-v-dark px-2.5 py-1 rounded border border-v-dark-border">
-                          BUS-102 (WHL-452)
-                        </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          En Ruta
-                        </span>
-                      </div>
-                      <p className="text-xs text-v-gray font-medium mb-3">Chevrolet NHR 2022 • Capacidad 24 pas</p>
-                      <div className="space-y-1.5 text-xs text-v-gray">
-                        <div className="flex justify-between">
-                          <span>SOAT:</span>
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1"><CheckCircle2 size={12}/> Vigente (240 días)</span>
+                    {mockVehiclesData.items.map((veh) => (
+                      <div key={veh.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-mono text-sm font-extrabold text-v-white bg-v-dark px-2.5 py-1 rounded border border-v-dark-border">
+                            {veh.code} ({veh.plate})
+                          </span>
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                              veh.statusType === 'warning'
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            }`}
+                          >
+                            {veh.status}
+                          </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Tecno-mecánica:</span>
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1"><CheckCircle2 size={12}/> Vigente (180 días)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tarjeta 2 */}
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-mono text-sm font-extrabold text-v-white bg-v-dark px-2.5 py-1 rounded border border-v-dark-border">
-                          VAN-205 (SXM-891)
-                        </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                          Mantenimiento
-                        </span>
-                      </div>
-                      <p className="text-xs text-v-gray font-medium mb-3">Mercedes Sprinter 2023 • Capacidad 19 pas</p>
-                      <div className="space-y-1.5 text-xs text-v-gray">
-                        <div className="flex justify-between">
-                          <span>SOAT:</span>
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1"><CheckCircle2 size={12}/> Vigente</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Revisión Aceite:</span>
-                          <span className="text-amber-400 font-semibold flex items-center gap-1"><Clock size={12}/> Taller programado</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tarjeta 3 */}
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-mono text-sm font-extrabold text-v-white bg-v-dark px-2.5 py-1 rounded border border-v-dark-border">
-                          MIC-304 (THK-109)
-                        </span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          Disponible
-                        </span>
-                      </div>
-                      <p className="text-xs text-v-gray font-medium mb-3">Renault Master 2021 • Capacidad 16 pas</p>
-                      <div className="space-y-1.5 text-xs text-v-gray">
-                        <div className="flex justify-between">
-                          <span>Póliza Contractual:</span>
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1"><CheckCircle2 size={12}/> Al día</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Siguiente Servicio:</span>
-                          <span className="text-v-white font-medium">Ruta Empresarial 14:00</span>
+                        <p className="text-xs text-v-gray font-medium mb-1">{veh.model} • Cap. {veh.capacity}</p>
+                        <p className="text-[11px] text-v-gray/80 mb-3">{veh.company}</p>
+                        <div className="space-y-1.5 text-xs text-v-gray">
+                          {veh.documents.soat && (
+                            <div className="flex justify-between">
+                              <span>SOAT:</span>
+                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                <CheckCircle2 size={12}/> {veh.documents.soat.status} ({veh.documents.soat.days} días)
+                              </span>
+                            </div>
+                          )}
+                          {veh.documents.techno && (
+                            <div className="flex justify-between">
+                              <span>Tecno-mecánica:</span>
+                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                <CheckCircle2 size={12}/> {veh.documents.techno.status} ({veh.documents.techno.days} días)
+                              </span>
+                            </div>
+                          )}
+                          {veh.documents.oilCheck && (
+                            <div className="flex justify-between">
+                              <span>Revisión Aceite:</span>
+                              <span className="text-amber-400 font-semibold flex items-center gap-1">
+                                <Clock size={12}/> {veh.documents.oilCheck.status}
+                              </span>
+                            </div>
+                          )}
+                          {veh.documents.policy && (
+                            <div className="flex justify-between">
+                              <span>Póliza Contractual:</span>
+                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                <CheckCircle2 size={12}/> {veh.documents.policy.status}
+                              </span>
+                            </div>
+                          )}
+                          {veh.documents.nextService && (
+                            <div className="flex justify-between">
+                              <span>Siguiente Servicio:</span>
+                              <span className="text-v-white font-medium">{veh.documents.nextService}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -245,44 +248,30 @@ const ProductPreviewSection = () => {
                       <p className="text-xs sm:text-sm text-v-gray">Asegure que su personal cuente con licencias vigentes y asignación clara.</p>
                     </div>
                     <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
-                      24 Conductores Activos
+                      {mockDriversData.summary.totalActive} Conductores Activos
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm">
-                          CR
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {mockDriversData.items.map((drv) => (
+                      <div key={drv.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm">
+                            {drv.initials}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-v-white">{drv.name}</h4>
+                            <p className="text-xs text-v-gray">{drv.licenseCategory} • Vence: {drv.licenseExpiry}</p>
+                            <p className="text-[11px] text-v-gray/70">{drv.company}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-v-white">Carlos Rodríguez</h4>
-                          <p className="text-xs text-v-gray">Licencia C2 • Vence: Nov 2026</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                          Asignado: BUS-102
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm">
-                          MG
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-v-white">Mario Gómez</h4>
-                          <p className="text-xs text-v-gray">Licencia C3 • Vence: Ago 2025</p>
+                        <div className="text-right shrink-0">
+                          <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                            {drv.assignedVehicle ? `Vehículo: ${drv.assignedVehicle}` : drv.status}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                          Asignado: VAN-205
-                        </span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -303,42 +292,38 @@ const ProductPreviewSection = () => {
                       <p className="text-xs sm:text-sm text-v-gray">Control de origen, destino y tiempos de cumplimiento de cada trayecto.</p>
                     </div>
                     <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
-                      12 Rutas en Programación Hoy
+                      {mockRoutesData.summary.scheduledToday} Rutas en Programación Hoy
                     </span>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <MapPin size={20} />
+                    {mockRoutesData.items.map((rt) => (
+                      <div key={rt.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                            <MapPin size={20} />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-v-white">{rt.name}</h4>
+                            <p className="text-xs text-v-gray">
+                              Vehículo: <span className="font-mono text-v-white">{rt.vehicle}</span> • Conductor: {rt.driver} • {rt.company}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-v-white">Ruta Empresarial Zona Franca - Suba</h4>
-                          <p className="text-xs text-v-gray">Vehículo: BUS-102 • Conductor: Carlos Rodríguez</p>
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="text-v-gray flex items-center gap-1"><Clock size={14}/> {rt.schedule}</span>
+                          <span
+                            className={`px-2.5 py-1 rounded-full font-bold ${
+                              rt.statusType === 'success'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-v-dark text-v-gray border border-v-dark-border'
+                            }`}
+                          >
+                            {rt.status}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-v-gray flex items-center gap-1"><Clock size={14}/> 06:00 AM - 07:30 AM</span>
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">En Curso</span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <MapPin size={20} />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-v-white">Ruta Escolar Col. San José - Chapinero</h4>
-                          <p className="text-xs text-v-gray">Vehículo: MIC-304 • Conductor: Andrés Pérez</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-v-gray flex items-center gap-1"><Clock size={14}/> 02:15 PM - 03:45 PM</span>
-                        <span className="px-2.5 py-1 rounded-full bg-v-dark text-v-gray font-bold border border-v-dark-border">Programada</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -359,32 +344,28 @@ const ProductPreviewSection = () => {
                       <p className="text-xs sm:text-sm text-v-gray">Evite varadas imprevistas mediante mantenimiento preventivo automatizado.</p>
                     </div>
                     <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 self-start sm:self-auto">
-                      1 Servicio Programado Esta Semana
+                      {mockMaintenanceData.summary.scheduledThisWeek} Servicio Programado Esta Semana
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                          <Wrench size={14} /> Cambio de Aceite y Filtros
-                        </span>
-                        <span className="text-xs font-mono text-v-white font-bold">VAN-205</span>
+                    {mockMaintenanceData.items.map((maint) => (
+                      <div key={maint.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
+                              maint.statusType === 'warning' ? 'text-amber-400' : 'text-emerald-400'
+                            }`}
+                          >
+                            {maint.statusType === 'warning' ? <Wrench size={14} /> : <CheckCircle2 size={14} />}
+                            {maint.title}
+                          </span>
+                          <span className="text-xs font-mono text-v-white font-bold">{maint.vehicle}</span>
+                        </div>
+                        <p className="text-sm font-bold text-v-white">{maint.mileageTarget}</p>
+                        <p className="text-xs text-v-gray">{maint.details}</p>
                       </div>
-                      <p className="text-sm font-bold text-v-white">Programado a los 45.000 KM (Actual: 44.820 KM)</p>
-                      <p className="text-xs text-v-gray">Taller Autorizado VEXTOR • Estimado 2 horas de servicio</p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 size={14} /> Inspección de Frenos
-                        </span>
-                        <span className="text-xs font-mono text-v-white font-bold">BUS-102</span>
-                      </div>
-                      <p className="text-sm font-bold text-v-white">Completado exitosamente el 12 de Febrero</p>
-                      <p className="text-xs text-v-gray">Próxima revisión preventiva: Mayo 2025</p>
-                    </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -410,21 +391,26 @@ const ProductPreviewSection = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
-                      <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={20} />
-                      <div>
-                        <h4 className="text-sm font-bold text-v-white">Aviso de Vencimiento SOAT Próximo (15 Días)</h4>
-                        <p className="text-xs text-v-gray mt-0.5">El SOAT de la unidad CAM-104 vencerá en 15 días. Haga clic para renovar digitalmente.</p>
+                    {mockAlertsData.items.map((alt) => (
+                      <div
+                        key={alt.id}
+                        className={`p-4 rounded-xl flex items-start gap-3 border ${
+                          alt.type === 'warning'
+                            ? 'bg-amber-500/10 border-amber-500/30'
+                            : 'bg-primary/10 border-primary/30'
+                        }`}
+                      >
+                        {alt.type === 'warning' ? (
+                          <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={20} />
+                        ) : (
+                          <Bell className="text-primary shrink-0 mt-0.5" size={20} />
+                        )}
+                        <div>
+                          <h4 className="text-sm font-bold text-v-white">{alt.title}</h4>
+                          <p className="text-xs text-v-gray mt-0.5">{alt.description}</p>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 flex items-start gap-3">
-                      <Bell className="text-primary shrink-0 mt-0.5" size={20} />
-                      <div>
-                        <h4 className="text-sm font-bold text-v-white">Notificación de Mantenimiento Preventivo</h4>
-                        <p className="text-xs text-v-gray mt-0.5">La unidad VAN-205 está a 180 KM de cumplir el ciclo de revisión de pastillas de freno.</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -450,29 +436,23 @@ const ProductPreviewSection = () => {
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
-                      <span className="text-xs text-v-gray font-medium">Disponibilidad de Flota</span>
-                      <p className="text-2xl font-extrabold text-emerald-400 mt-1">94.4%</p>
-                      <span className="text-[10px] text-v-gray">17 de 18 unidades operativas</span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
-                      <span className="text-xs text-v-gray font-medium">Cumplimiento de Rutas</span>
-                      <p className="text-2xl font-extrabold text-primary mt-1">98.2%</p>
-                      <span className="text-[10px] text-v-gray">340 itinerarios este mes</span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
-                      <span className="text-xs text-v-gray font-medium">Doc. al Día</span>
-                      <p className="text-2xl font-extrabold text-v-white mt-1">100%</p>
-                      <span className="text-[10px] text-v-gray">0 sanciones o faltas</span>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
-                      <span className="text-xs text-v-gray font-medium">Eficiencia Preventiva</span>
-                      <p className="text-2xl font-extrabold text-emerald-400 mt-1">+35%</p>
-                      <span className="text-[10px] text-v-gray">Reducción de costos correctivos</span>
-                    </div>
+                    {mockReportsData.kpis.map((kpi) => (
+                      <div key={kpi.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
+                        <span className="text-xs text-v-gray font-medium">{kpi.label}</span>
+                        <p
+                          className={`text-2xl font-extrabold mt-1 ${
+                            kpi.color === 'emerald'
+                              ? 'text-emerald-400'
+                              : kpi.color === 'primary'
+                              ? 'text-primary'
+                              : 'text-v-white'
+                          }`}
+                        >
+                          {kpi.value}
+                        </p>
+                        <span className="text-[10px] text-v-gray">{kpi.subtext}</span>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
