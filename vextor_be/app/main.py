@@ -3,7 +3,7 @@ Punto de entrada principal de la aplicación VEXTOR
 Inicializa FastAPI, configura middlewares y registra routers
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
@@ -102,6 +102,6 @@ app.include_router(reports.router, prefix="/api/reports")
 # ========== WEBSOCKET ENDPOINTS ==========
 
 @app.websocket("/ws/tracking")
-async def websocket_endpoint(websocket):
+async def websocket_endpoint(websocket: WebSocket):
     """WebSocket para tracking en tiempo real"""
     await websocket_tracking_endpoint(websocket)

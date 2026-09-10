@@ -16,15 +16,19 @@ import { Loader2 } from 'lucide-react';
 const Button = React.forwardRef(({ className, variant = 'primary', size = 'default', isLoading, children, disabled, ...props }, ref) => {
   const variants = {
     primary:
-      'bg-[#124A2F] text-white hover:bg-[#0B3522] active:bg-[#08281A] dark:bg-[#124A2F] dark:hover:bg-[#0B3522] dark:text-white shadow-sm hover:shadow-md hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 border border-transparent font-semibold',
+      'bg-primary text-white hover:bg-primary-hover active:bg-primary-dark shadow-sm shadow-primary/20 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 border border-transparent font-semibold',
     secondary:
-      'bg-white text-[#124A2F] border border-[#124A2F]/20 hover:bg-[#124A2F]/5 hover:border-[#124A2F]/40 dark:bg-[#12291D] dark:text-[#A6C98F] dark:border-[#1E3D2C] dark:hover:bg-[#1A3828] dark:hover:border-[#A6C98F]/40 shadow-xs hover:shadow hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 font-semibold',
+      'bg-v-dark-soft text-v-white border border-v-dark-border hover:bg-v-dark hover:border-primary/35 dark:hover:bg-white/5 shadow-xs hover:shadow-sm hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200 font-semibold',
     outline:
-      'border border-[#124A2F]/30 bg-transparent hover:bg-[#124A2F]/10 text-[#124A2F] dark:border-[#1E3D2C] dark:text-[#A6C98F] dark:hover:bg-[#1E3D2C]/60 transition-all duration-200 font-semibold',
+      'border border-primary/35 bg-transparent hover:bg-primary/8 text-primary dark:hover:bg-primary/15 transition-all duration-200 font-semibold',
     ghost:
-      'bg-transparent hover:bg-[#124A2F]/5 dark:hover:bg-white/5 text-[#647067] dark:text-gray-300 hover:text-[#124A2F] dark:hover:text-[#A6C98F] transition-colors duration-200 font-semibold',
+      'bg-transparent hover:bg-primary/8 dark:hover:bg-white/5 text-v-gray hover:text-primary transition-colors duration-200 font-semibold',
     link:
-      'text-[#124A2F] dark:text-[#A6C98F] underline-offset-4 hover:underline font-semibold transition-colors duration-200'
+      'text-primary underline-offset-4 hover:underline font-semibold transition-colors duration-200',
+    success:
+      'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm shadow-emerald-600/20 transition-all duration-200 border border-transparent font-semibold',
+    danger:
+      'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm shadow-red-600/20 transition-all duration-200 border border-transparent font-semibold'
   };
 
   const sizes = {
@@ -37,7 +41,7 @@ const Button = React.forwardRef(({ className, variant = 'primary', size = 'defau
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124A2F]/40 dark:focus-visible:ring-[#A6C98F]/40 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.99] cursor-pointer tracking-tight',
+        'inline-flex items-center justify-center rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-v-dark disabled:pointer-events-none disabled:opacity-45 disabled:saturate-50 active:scale-[0.99] cursor-pointer tracking-tight',
         variants[variant],
         sizes[size],
         className

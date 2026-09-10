@@ -2,52 +2,59 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* VEXTOR Official Palette */
-  --vextor-green-dark: #124A2F;
-  --vextor-green-deep: #0B3522;
-  --vextor-green-accent: #A6C98F;
-  --vextor-green-soft: #DDEBD5;
-  --vextor-bg-light: #F5F7F5;
-  --vextor-text-dark: #1E2822;
-  --vextor-text-muted: #647067;
-  --vextor-border: #E1E8E3;
+  /* Light mode: neutral surfaces with a deliberate VEXTOR green accent. */
+  --vextor-green-dark: #0f5c3a;
+  --vextor-green-deep: #0a432a;
+  --vextor-green-accent: #9bd5b5;
+  --vextor-green-soft: #e7f5ec;
+  --vextor-bg-light: #f4f7f5;
+  --vextor-text-dark: #17231c;
+  --vextor-text-muted: #617067;
+  --vextor-border: #dbe5de;
 
-  --v-bg: #F5F7F5; /* Soft light background for VEXTOR */
-  --v-bg-soft: #ffffff; /* pure white cards */
-  --v-border: #E1E8E3; /* subtle green-gray border */
-  --v-text: #1E2822; /* primary text dark */
-  --v-gray: #647067; /* secondary text muted */
-  --v-gray-dark: #E1E8E3;
+  --v-bg: #f4f7f5;
+  --v-bg-soft: #fdfefd;
+  --v-border: #dbe5de;
+  --v-text: #17231c;
+  --v-gray: #617067;
+  --v-gray-dark: #cfdad2;
 
-  /* Default brand color: VEXTOR Dark Green (#124A2F) */
-  --primary-color: #124A2F;
-  --primary-color-dark: #0B3522;
-  --primary-color-hover: #0B3522;
-  --primary-color-shadow: rgba(18, 74, 47, 0.2);
-  --accent-color: #A6C98F;
+  --primary-color: #0f6a43;
+  --primary-color-dark: #0a4d31;
+  --primary-color-hover: #09542f;
+  --primary-color-shadow: rgba(15, 106, 67, 0.18);
+  --accent-color: #9bd5b5;
 }
 
 .dark {
-  --v-bg: #0B1D14; /* Deep dark green background */
-  --v-bg-soft: #12291D; /* Dark green-gray card background */
-  --v-border: #1E3D2C; /* Dark green border */
-  --v-text: #F5F7F5; /* Off-white text */
-  --v-gray: #9BB0A3; /* Muted green-gray text */
-  --v-gray-dark: #1E3D2C;
+  /* Dark mode keeps surfaces neutral; green is reserved for emphasis. */
+  --v-bg: #101713;
+  --v-bg-soft: #18211c;
+  --v-border: #2b3a31;
+  --v-text: #f2f6f3;
+  --v-gray: #a8b5ad;
+  --v-gray-dark: #34443a;
 
-  --primary-color: #124A2F;
-  --primary-color-dark: #0B3522;
-  --primary-color-hover: #165738;
-  --primary-color-shadow: rgba(166, 201, 143, 0.25);
-  --accent-color: #A6C98F;
+  --primary-color: #35ae78;
+  --primary-color-dark: #218457;
+  --primary-color-hover: #49bd89;
+  --primary-color-shadow: rgba(53, 174, 120, 0.22);
+  --accent-color: #a9dfc2;
 }
 
 /* Dynamic theme classes for custom emphasis colors */
 .theme-emerald {
-  --primary-color: #124A2F;
-  --primary-color-dark: #0B3522;
-  --primary-color-hover: #0B3522;
-  --primary-color-shadow: rgba(18, 74, 47, 0.2);
+  --primary-color: #0f6a43;
+  --primary-color-dark: #0a4d31;
+  --primary-color-hover: #09542f;
+  --primary-color-shadow: rgba(15, 106, 67, 0.18);
+}
+
+.dark.theme-emerald {
+  --primary-color: #35ae78;
+  --primary-color-dark: #218457;
+  --primary-color-hover: #49bd89;
+  --primary-color-shadow: rgba(53, 174, 120, 0.22);
 }
 
 .theme-blue {
@@ -95,6 +102,11 @@
 @layer base {
   body {
     @apply bg-v-dark text-v-white font-sans antialiased transition-colors duration-300;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary-color) 24%, transparent);
+    color: var(--v-text);
   }
 }
 

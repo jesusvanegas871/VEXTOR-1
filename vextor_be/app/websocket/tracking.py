@@ -48,6 +48,12 @@ async def websocket_tracking_endpoint(websocket: WebSocket):
         token = websocket.cookies.get("vextor_auth_token")
 
     if not token:
+        # Enviar un mensaje antes de cerrar fuerza a completar el upgrade del
+        # WebSocket; cerrar inmediatamente hace que Uvicorn responda HTTP 403.
+        await websocket.send_json({
+            "type": "error",
+            "message": "Token de autenticación requerido",
+        })
         await websocket.close(code=4001, reason="Token de autenticación requerido")
         return
 
@@ -56,8 +62,13 @@ async def websocket_tracking_endpoint(websocket: WebSocket):
     try:
         from app.services.auth_service import AuthService
         current_user = AuthService.get_current_user(token, db_auth)
-    except Exception as e:
-        db_auth.close()
+    except Exception:
+        # La conexión ya fue aceptada arriba. Notificar antes de cerrar evita
+        # que el navegador lo interprete como un error de handshake (403).
+        await websocket.send_json({
+            "type": "error",
+            "message": "Sesión no válida o expirada",
+        })
         await websocket.close(code=4003, reason="Autenticación fallida o token inválido")
         return
     finally:

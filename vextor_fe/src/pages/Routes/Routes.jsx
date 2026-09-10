@@ -24,6 +24,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
 import { routeService } from './services/routeService';
@@ -44,6 +45,7 @@ const ROUTE_STATUSES = [
 
 const Routes = () => {
   const { t } = useTranslation();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   // Data lists
   const [routes, setRoutes] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -156,6 +158,10 @@ const Routes = () => {
   };
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) {
+      return undefined;
+    }
+
     loadData();
     fetchActiveTrackings();
 
@@ -164,31 +170,30 @@ const Routes = () => {
 
     // Setup WebSocket for live updates
     let ws = null;
-    try {
-      const storedToken = localStorage.getItem('vextor_auth_token');
-      const wsUrl = storedToken
-        ? `${WS_BASE_URL}/ws/tracking?token=${encodeURIComponent(storedToken)}`
-        : `${WS_BASE_URL}/ws/tracking`;
-      ws = new WebSocket(wsUrl);
-      ws.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload.type === 'location_broadcast') {
-            fetchActiveTrackings();
+    const storedToken = localStorage.getItem('vextor_auth_token');
+    if (storedToken) {
+      try {
+        ws = new WebSocket(`${WS_BASE_URL}/ws/tracking?token=${encodeURIComponent(storedToken)}`);
+        ws.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === 'location_broadcast') {
+              fetchActiveTrackings();
+            }
+          } catch (e) {
+            console.warn('WS message parse error:', e);
           }
-        } catch (e) {
-          console.warn('WS message parse error:', e);
-        }
-      };
-    } catch (err) {
-      console.warn('WS error on admin routes:', err);
+        };
+      } catch (err) {
+        console.warn('WS error on admin routes:', err);
+      }
     }
 
     return () => {
       clearInterval(interval);
       if (ws) ws.close();
     };
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   const showFeedback = (type, message) => {
     setFeedback({ type, message });

@@ -186,7 +186,6 @@ class RutaBase(BaseModel):
     hora_inicio_real: Optional[datetime] = None
     hora_fin_real: Optional[datetime] = None
     estado_ruta: str = Field("PROGRAMADA", max_length=30)
-    tipo_servicio_exequial: Optional[str] = Field("CORTEJO_FUNERARIO", max_length=50)
     motivo_suspension: Optional[str] = Field(None, max_length=255)
 
 
@@ -204,7 +203,6 @@ class RutaUpdate(BaseModel):
     hora_inicio_real: Optional[datetime] = None
     hora_fin_real: Optional[datetime] = None
     estado_ruta: Optional[str] = Field(None, max_length=30)
-    tipo_servicio_exequial: Optional[str] = Field(None, max_length=50)
     motivo_suspension: Optional[str] = Field(None, max_length=255)
     id_conductor: Optional[UUID] = None
     id_vehiculo: Optional[UUID] = None
