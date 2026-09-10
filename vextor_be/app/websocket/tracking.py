@@ -29,17 +29,23 @@ async def websocket_tracking_endpoint(websocket: WebSocket):
     """
     WebSocket endpoint para tracking en tiempo real con autenticación previa.
     Protocolo:
-    - Cliente envía token en query string `?token=XYZ` o cabecera `Authorization: Bearer XYZ`
+    - Cliente envía token en query string `?token=XYZ`, cabecera `Authorization: Bearer XYZ` o Cookie `vextor_auth_token`
     - Cliente envía: {"type": "location_update", "id_ruta": "uuid", "latitud": float, "longitud": float, "velocidad": float, "heading": float}
     - Server broadcast: {"type": "location_broadcast", "id_ruta": "uuid", ...datos de ubicación}
     - Cliente puede enviar: {"type": "ping"} → Server responde {"type": "pong"}
     """
-    # Extraer token
+    # Accept handshake first to prevent HTTP 403 upgrade rejection
+    await websocket.accept()
+
+    # Extraer token de query string, headers o cookies
     token = websocket.query_params.get("token")
     if not token:
         auth_header = websocket.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
+
+    if not token:
+        token = websocket.cookies.get("vextor_auth_token")
 
     if not token:
         await websocket.close(code=4001, reason="Token de autenticación requerido")
@@ -57,7 +63,8 @@ async def websocket_tracking_endpoint(websocket: WebSocket):
     finally:
         db_auth.close()
 
-    await manager.connect(websocket)
+    if websocket not in manager.active_connections:
+        manager.active_connections.append(websocket)
     try:
         while True:
             data = await websocket.receive_json()
