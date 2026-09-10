@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/Button';
  */
 const IntermediateCTA = () => {
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-v-dark-soft/40 border-t border-v-dark-border/60 transition-colors duration-300 relative overflow-hidden">
+    <section className="py-16 sm:py-20 lg:py-24 bg-v-dark-soft/40 border-t border-v-dark-border/70 transition-colors duration-300 relative overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
 
@@ -23,16 +23,16 @@ const IntermediateCTA = () => {
             className="relative bg-v-dark border border-v-dark-border rounded-2xl p-8 sm:p-12 text-center shadow-md overflow-hidden"
           >
             {/* Subtle brand background glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 blur-3xl rounded-full pointer-events-none -z-0" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 blur-3xl rounded-full pointer-events-none -z-0" />
 
             <div className="relative z-10 max-w-2xl mx-auto">
 
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold tracking-wide mb-5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-bold tracking-wider uppercase mb-5">
                 <CheckCircle2 size={16} />
                 Lleve su flota al siguiente nivel
               </div>
 
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-v-white mb-4 tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-v-white mb-4 tracking-tight leading-[1.18]">
                 ¿Listo para tener mayor <span className="text-[#124A2F] dark:text-[#A6C98F]">control de su operación?</span>
               </h2>
 
@@ -42,7 +42,7 @@ const IntermediateCTA = () => {
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
                 <a href="#contacto" className="w-full sm:w-auto">
-                  <Button size="lg" variant="primary" className="w-full sm:w-auto text-sm sm:text-base font-semibold h-12 px-7 rounded-lg group">
+                  <Button size="lg" variant="primary" className="w-full sm:w-auto text-sm sm:text-base font-semibold h-12 px-7 rounded-lg group shadow-sm hover:shadow-md">
                     Solicitar demostración
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>

@@ -54,12 +54,12 @@ const WhyVextorSection = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
         {/* ENCABEZADO */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-14 lg:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-bold uppercase tracking-wider mb-4"
           >
             Diferenciación B2B
           </motion.div>
@@ -68,7 +68,7 @@ const WhyVextorSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-[1.18]"
           >
             ¿Por qué las empresas eligen <span className="text-[#124A2F] dark:text-[#A6C98F]">VEXTOR?</span>
           </motion.h2>
@@ -84,7 +84,7 @@ const WhyVextorSection = () => {
           </motion.p>
         </div>
 
-        {/* GRID DE DIFERENCIADORES (Cards 12-16px radius = rounded-2xl) */}
+        {/* GRID DE DIFERENCIADORES */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {differentiators.map((item, index) => {
             const Icon = item.icon;
@@ -95,14 +95,14 @@ const WhyVextorSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08, duration: 0.5 }}
-                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 hover:-translate-y-1 transition-all duration-300 shadow-xs hover:shadow-md group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-10 h-10 rounded-xl bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F] border border-[#124A2F]/20 dark:border-[#A6C98F]/20 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300 shadow-2xs">
                     <Icon size={20} />
                   </div>
 
-                  <h3 className="text-lg font-bold text-v-white mb-3 group-hover:text-[#124A2F] dark:group-hover:text-[#A6C98F] transition-colors">
+                  <h3 className="text-lg font-bold text-v-white mb-3 group-hover:text-[#124A2F] dark:group-hover:text-[#A6C98F] transition-colors leading-snug">
                     {item.title}
                   </h3>
 

@@ -55,12 +55,12 @@ const ProblemSection = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
         {/* ENCABEZADO DE SECCIÓN */}
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-3xl mb-14 lg:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-[#124A2F] dark:text-[#A6C98F] font-semibold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            className="text-[#124A2F] dark:text-[#A6C98F] font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
           >
             Retos de la Gestión Operativa
           </motion.div>
@@ -69,7 +69,7 @@ const ProblemSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 leading-[1.18] tracking-tight"
           >
             ¿Identifica estos desafíos en su <span className="text-[#124A2F] dark:text-[#A6C98F]">operación diaria?</span>
           </motion.h2>
@@ -85,7 +85,7 @@ const ProblemSection = () => {
           </motion.p>
         </div>
 
-        {/* GRID DE PROBLEMA → CONSECUENCIA → SOLUCIÓN (Cards 12-16px radius = rounded-2xl) */}
+        {/* GRID DE PROBLEMA → CONSECUENCIA → SOLUCIÓN */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {painPoints.map((point, index) => (
             <motion.div
@@ -94,25 +94,25 @@ const ProblemSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.5 }}
-              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between"
+              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 hover:-translate-y-1 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between"
             >
               <div>
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-5">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center mb-5 shadow-2xs">
                   <point.icon size={20} />
                 </div>
 
                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block mb-1">
                   Desafío común
                 </span>
-                <h3 className="text-lg font-bold text-v-white mb-3">
+                <h3 className="text-lg font-bold text-v-white mb-3 leading-snug">
                   {point.problem}
                 </h3>
 
-                <div className="mb-5 p-3 rounded-xl bg-v-dark-soft border border-v-dark-border">
+                <div className="mb-5 p-3 rounded-xl bg-v-dark-soft border border-v-dark-border/80">
                   <span className="text-[10px] font-bold text-v-gray uppercase tracking-wider block mb-1">
                     Consecuencia:
                   </span>
-                  <p className="text-v-gray text-xs leading-relaxed">
+                  <p className="text-v-gray text-xs leading-relaxed font-normal">
                     {point.consequence}
                   </p>
                 </div>
@@ -122,7 +122,7 @@ const ProblemSection = () => {
                 <span className="text-[10px] font-bold text-[#124A2F] dark:text-[#A6C98F] uppercase tracking-wider block mb-1">
                   Solución VEXTOR:
                 </span>
-                <p className="text-v-white text-xs font-medium leading-relaxed">
+                <p className="text-v-white text-xs font-semibold leading-relaxed">
                   {point.solution}
                 </p>
               </div>
@@ -135,10 +135,10 @@ const ProblemSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="p-6 sm:p-8 rounded-2xl bg-[#124A2F] text-white flex flex-col justify-between shadow-md"
+            className="p-6 sm:p-8 rounded-2xl bg-[#124A2F] text-white flex flex-col justify-between shadow-md hover:-translate-y-1 transition-all duration-300"
           >
             <div>
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-5">
+              <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center mb-5 shadow-2xs">
                 <CheckCircle2 size={22} className="text-white" />
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold mb-3 leading-snug">
