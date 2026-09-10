@@ -77,6 +77,22 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-v-dark/80 via-transparent to-v-dark" />
       </div>
 
+      {/* VEHÍCULOS SUPERPUESTOS Y FLOTANTES SOBRE EL MAPA */}
+      <div className="absolute inset-y-0 right-0 z-[5] w-1/2 sm:w-1/2 lg:w-1/2 flex items-center justify-end pointer-events-none overflow-hidden pr-2 sm:pr-4 lg:pr-8">
+        <motion.div
+          initial={{ opacity: 0, x: 40, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+          className="relative max-w-[160px] sm:max-w-[280px] md:max-w-[360px] lg:max-w-[560px] xl:max-w-[660px] opacity-30 sm:opacity-50 lg:opacity-100"
+        >
+          <img
+            src="/Cars/vehiculos-hero.png"
+            alt="Flota de vehículos VEXTOR"
+            className="w-full h-auto object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.65)]"
+          />
+        </motion.div>
+      </div>
+
       {/* CONTENIDO DEL HERO EN PRIMER PLANO */}
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-2xl lg:max-w-3xl">
