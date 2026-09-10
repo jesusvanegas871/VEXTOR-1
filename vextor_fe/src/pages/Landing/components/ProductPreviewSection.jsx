@@ -8,11 +8,11 @@ import {
   Bell,
   BarChart3,
   CheckCircle2,
-  AlertTriangle,
   Clock,
   ShieldCheck,
   ChevronRight,
-  MapPin
+  MapPin,
+  AlertTriangle
 } from 'lucide-react';
 
 import {
@@ -48,9 +48,9 @@ const ProductPreviewSection = () => {
   ];
 
   return (
-    <section id="producto" className="py-20 lg:py-28 bg-v-dark-soft/40 border-y border-v-dark-border/60 relative overflow-hidden transition-colors duration-300">
-      {/* Background glow effect */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-3xl rounded-full pointer-events-none -z-0" />
+    <section id="producto" className="py-20 lg:py-28 bg-v-dark border-y border-v-dark-border relative overflow-hidden transition-colors duration-300">
+      {/* Background glow effect sutil */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#124A2F]/5 dark:bg-[#A6C98F]/5 blur-3xl rounded-full pointer-events-none -z-0" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
@@ -60,7 +60,7 @@ const ProductPreviewSection = () => {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold uppercase tracking-wider mb-4"
           >
             <ShieldCheck size={16} />
             Demostración de Plataforma
@@ -70,10 +70,10 @@ const ProductPreviewSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 tracking-tight leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-tight"
           >
             Todo el control de su operación, <br className="hidden sm:inline" />
-            en <span className="text-primary">una sola plataforma.</span>
+            en <span className="text-[#124A2F] dark:text-[#A6C98F]">una sola plataforma.</span>
           </motion.h2>
 
           <motion.p
@@ -81,13 +81,13 @@ const ProductPreviewSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto"
+            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto font-normal"
           >
             Visualice cómo VEXTOR integra sus módulos operativos en una interfaz intuitiva diseñada para agilizar la toma de decisiones.
           </motion.p>
         </div>
 
-        {/* TAB SELECTOR / PESTAÑAS */}
+        {/* TAB SELECTOR / PESTAÑAS (Radius 8-10px) */}
         <div className="flex items-center justify-start lg:justify-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -96,17 +96,17 @@ const ProductPreviewSection = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? 'bg-primary text-v-dark-constant shadow-md shadow-primary/20 scale-[1.02]'
-                    : 'bg-v-dark border border-v-dark-border text-v-gray hover:text-v-white hover:border-primary/40'
+                    ? 'bg-[#124A2F] text-white shadow-xs'
+                    : 'bg-v-dark-soft border border-v-dark-border text-v-gray hover:text-v-white hover:border-[#124A2F]/40'
                 }`}
               >
-                <Icon size={18} className={isActive ? 'text-v-dark-constant' : 'text-primary'} />
+                <Icon size={17} className={isActive ? 'text-white' : 'text-[#124A2F] dark:text-[#A6C98F]'} />
                 <span>{tab.name}</span>
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                    isActive ? 'bg-v-dark-constant/20 text-v-dark-constant' : 'bg-v-dark-soft text-v-gray'
+                  className={`text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-v-dark text-v-gray'
                   }`}
                 >
                   {tab.badge}
@@ -116,20 +116,20 @@ const ProductPreviewSection = () => {
           })}
         </div>
 
-        {/* CONTAINER MOCKUP DEL DASHBOARD */}
+        {/* CONTAINER MOCKUP DEL DASHBOARD (Card de 12-16px radius = rounded-2xl) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-5xl mx-auto bg-v-dark border border-v-dark-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl relative overflow-hidden"
+          className="max-w-5xl mx-auto bg-v-dark-soft border border-v-dark-border rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md relative overflow-hidden"
         >
           {/* TOP BAR SIMULATOR */}
-          <div className="flex items-center justify-between pb-4 sm:pb-6 mb-6 border-b border-v-dark-border/80 flex-wrap gap-4">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-v-dark-border flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
               </div>
               <span className="text-xs font-mono text-v-gray pl-2 border-l border-v-dark-border">
                 app.vextor.com / modulo-operativo
@@ -137,8 +137,8 @@ const ProductPreviewSection = () => {
             </div>
 
             <div className="flex items-center gap-3 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#124A2F]/10 text-[#124A2F] dark:text-[#A6C98F] font-semibold">
+                <span className="w-2 h-2 rounded-full bg-[#124A2F] dark:bg-[#A6C98F] animate-pulse" />
                 Sistema Operativo VEXTOR activo
               </span>
             </div>
@@ -162,23 +162,23 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Hoja de Vida y Estado de Flota</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Control técnico y documental de cada unidad de transporte especial.</p>
                     </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-[#124A2F] dark:text-[#A6C98F] bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 px-3 py-1 rounded-lg border border-[#124A2F]/20 dark:border-[#A6C98F]/20 self-start sm:self-auto">
                       {mockVehiclesData.summary.totalRegistered} Vehículos Registrados
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {mockVehiclesData.items.map((veh) => (
-                      <div key={veh.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border hover:border-primary/40 transition-colors">
+                      <div key={veh.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 transition-colors">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="font-mono text-sm font-extrabold text-v-white bg-v-dark px-2.5 py-1 rounded border border-v-dark-border">
+                          <span className="font-mono text-xs font-bold text-v-white bg-v-dark-soft px-2.5 py-1 rounded border border-v-dark-border">
                             {veh.code} ({veh.plate})
                           </span>
                           <span
                             className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                               veh.statusType === 'warning'
-                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                             }`}
                           >
                             {veh.status}
@@ -190,7 +190,7 @@ const ProductPreviewSection = () => {
                           {veh.documents.soat && (
                             <div className="flex justify-between">
                               <span>SOAT:</span>
-                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                                 <CheckCircle2 size={12}/> {veh.documents.soat.status} ({veh.documents.soat.days} días)
                               </span>
                             </div>
@@ -198,7 +198,7 @@ const ProductPreviewSection = () => {
                           {veh.documents.techno && (
                             <div className="flex justify-between">
                               <span>Tecno-mecánica:</span>
-                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                                 <CheckCircle2 size={12}/> {veh.documents.techno.status} ({veh.documents.techno.days} días)
                               </span>
                             </div>
@@ -206,23 +206,9 @@ const ProductPreviewSection = () => {
                           {veh.documents.oilCheck && (
                             <div className="flex justify-between">
                               <span>Revisión Aceite:</span>
-                              <span className="text-amber-400 font-semibold flex items-center gap-1">
+                              <span className="text-amber-500 font-semibold flex items-center gap-1">
                                 <Clock size={12}/> {veh.documents.oilCheck.status}
                               </span>
-                            </div>
-                          )}
-                          {veh.documents.policy && (
-                            <div className="flex justify-between">
-                              <span>Póliza Contractual:</span>
-                              <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                                <CheckCircle2 size={12}/> {veh.documents.policy.status}
-                              </span>
-                            </div>
-                          )}
-                          {veh.documents.nextService && (
-                            <div className="flex justify-between">
-                              <span>Siguiente Servicio:</span>
-                              <span className="text-v-white font-medium">{veh.documents.nextService}</span>
                             </div>
                           )}
                         </div>
@@ -247,26 +233,25 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Expediente de Conductores y Asignaciones</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Asegure que su personal cuente con licencias vigentes y asignación clara.</p>
                     </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-[#124A2F] dark:text-[#A6C98F] bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 px-3 py-1 rounded-lg border border-[#124A2F]/20 dark:border-[#A6C98F]/20 self-start sm:self-auto">
                       {mockDriversData.summary.totalActive} Conductores Activos
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {mockDriversData.items.map((drv) => (
-                      <div key={drv.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex items-center justify-between">
+                      <div key={drv.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm">
+                          <div className="w-9 h-9 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center font-bold text-xs">
                             {drv.initials}
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-v-white">{drv.name}</h4>
                             <p className="text-xs text-v-gray">{drv.licenseCategory} • Vence: {drv.licenseExpiry}</p>
-                            <p className="text-[11px] text-v-gray/70">{drv.company}</p>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
+                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
                             {drv.assignedVehicle ? `Vehículo: ${drv.assignedVehicle}` : drv.status}
                           </span>
                         </div>
@@ -291,32 +276,32 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Programación e Itinerarios de Transporte</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Control de origen, destino y tiempos de cumplimiento de cada trayecto.</p>
                     </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-[#124A2F] dark:text-[#A6C98F] bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 px-3 py-1 rounded-lg border border-[#124A2F]/20 dark:border-[#A6C98F]/20 self-start sm:self-auto">
                       {mockRoutesData.summary.scheduledToday} Rutas en Programación Hoy
                     </span>
                   </div>
 
                   <div className="space-y-3">
                     {mockRoutesData.items.map((rt) => (
-                      <div key={rt.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div key={rt.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                            <MapPin size={20} />
+                          <div className="p-2 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F]">
+                            <MapPin size={18} />
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-v-white">{rt.name}</h4>
                             <p className="text-xs text-v-gray">
-                              Vehículo: <span className="font-mono text-v-white">{rt.vehicle}</span> • Conductor: {rt.driver} • {rt.company}
+                              Vehículo: <span className="font-mono text-v-white">{rt.vehicle}</span> • Conductor: {rt.driver}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-xs">
                           <span className="text-v-gray flex items-center gap-1"><Clock size={14}/> {rt.schedule}</span>
                           <span
-                            className={`px-2.5 py-1 rounded-full font-bold ${
+                            className={`px-2.5 py-1 rounded-full font-semibold ${
                               rt.statusType === 'success'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : 'bg-v-dark text-v-gray border border-v-dark-border'
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                : 'bg-v-dark-soft text-v-gray border border-v-dark-border'
                             }`}
                           >
                             {rt.status}
@@ -343,18 +328,18 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Plan Preventivo y Control de Taller</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Evite varadas imprevistas mediante mantenimiento preventivo automatizado.</p>
                     </div>
-                    <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 self-start sm:self-auto">
                       {mockMaintenanceData.summary.scheduledThisWeek} Servicio Programado Esta Semana
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {mockMaintenanceData.items.map((maint) => (
-                      <div key={maint.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border space-y-2">
+                      <div key={maint.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border space-y-2">
                         <div className="flex items-center justify-between">
                           <span
                             className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
-                              maint.statusType === 'warning' ? 'text-amber-400' : 'text-emerald-400'
+                              maint.statusType === 'warning' ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'
                             }`}
                           >
                             {maint.statusType === 'warning' ? <Wrench size={14} /> : <CheckCircle2 size={14} />}
@@ -385,7 +370,7 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Centro de Alertas y Notificaciones Preventivas</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Reciba avisos automáticos antes de que ocurran vencimientos o imprevistos.</p>
                     </div>
-                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20 self-start sm:self-auto">
                       Operación Sin Riesgos Documentales
                     </span>
                   </div>
@@ -397,13 +382,13 @@ const ProductPreviewSection = () => {
                         className={`p-4 rounded-xl flex items-start gap-3 border ${
                           alt.type === 'warning'
                             ? 'bg-amber-500/10 border-amber-500/30'
-                            : 'bg-primary/10 border-primary/30'
+                            : 'bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border-[#124A2F]/20 dark:border-[#A6C98F]/20'
                         }`}
                       >
                         {alt.type === 'warning' ? (
-                          <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={20} />
+                          <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
                         ) : (
-                          <Bell className="text-primary shrink-0 mt-0.5" size={20} />
+                          <Bell className="text-[#124A2F] dark:text-[#A6C98F] shrink-0 mt-0.5" size={18} />
                         )}
                         <div>
                           <h4 className="text-sm font-bold text-v-white">{alt.title}</h4>
@@ -430,24 +415,16 @@ const ProductPreviewSection = () => {
                       <h3 className="text-xl font-bold text-v-white">Indicadores Operativos y Toma de Decisiones</h3>
                       <p className="text-xs sm:text-sm text-v-gray">Información consolidada de disponibilidad de flota, eficiencia e itinerarios.</p>
                     </div>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 self-start sm:self-auto">
+                    <span className="text-xs font-semibold text-[#124A2F] dark:text-[#A6C98F] bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 px-3 py-1 rounded-lg border border-[#124A2F]/20 dark:border-[#A6C98F]/20 self-start sm:self-auto">
                       Actualización en Tiempo Real
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {mockReportsData.kpis.map((kpi) => (
-                      <div key={kpi.id} className="p-4 rounded-xl bg-v-dark-soft border border-v-dark-border text-center">
+                      <div key={kpi.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border text-center">
                         <span className="text-xs text-v-gray font-medium">{kpi.label}</span>
-                        <p
-                          className={`text-2xl font-extrabold mt-1 ${
-                            kpi.color === 'emerald'
-                              ? 'text-emerald-400'
-                              : kpi.color === 'primary'
-                              ? 'text-primary'
-                              : 'text-v-white'
-                          }`}
-                        >
+                        <p className="text-2xl font-extrabold mt-1 text-[#124A2F] dark:text-[#A6C98F]">
                           {kpi.value}
                         </p>
                         <span className="text-[10px] text-v-gray">{kpi.subtext}</span>
@@ -459,13 +436,13 @@ const ProductPreviewSection = () => {
             </AnimatePresence>
 
             {/* BARRA INFERIOR DE CONVERSIÓN */}
-            <div className="mt-8 pt-6 border-t border-v-dark-border/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="mt-8 pt-6 border-t border-v-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
               <span className="text-xs sm:text-sm text-v-gray text-center sm:text-left font-medium">
-                ¿Desea ver cómo funcionaría VEXTOR adaptado al número de vehículos de su empresa?
+                ¿Desea ver cómo funcionaría VEXTOR adaptado a la cantidad de vehículos de su empresa?
               </span>
               <a href="#contacto" className="shrink-0 w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-primary text-v-dark-constant font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
-                  <span>Solicitar prueba personalizada</span>
+                <button className="w-full sm:w-auto bg-[#124A2F] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-lg hover:bg-[#0B3522] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                  <span>Solicitar demostración</span>
                   <ChevronRight size={16} />
                 </button>
               </a>

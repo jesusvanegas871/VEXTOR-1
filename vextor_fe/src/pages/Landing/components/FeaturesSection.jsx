@@ -5,26 +5,14 @@ import {
   Route,
   Wrench,
   Bell,
-  BarChart3,
-  CheckCircle2,
-  Zap,
-  ShieldCheck,
-  TrendingUp,
-  FolderCheck,
-  Clock
+  BarChart3
 } from 'lucide-react';
 
 /**
  * FeaturesSection Component
  *
  * Responsabilidad:
- * Presentar las 6 funcionalidades principales de VEXTOR y comunicar los beneficios operativos reales
- * para las empresas de transporte especial.
- *
- * Funcionalidades:
- * * id="funciones" para navegación interna.
- * * Tarjetas de funciones principales: Gestión de vehículos, Conductores, Rutas, Mantenimiento, Alertas y Reportes.
- * * id="beneficios" para resaltar valor operativo sin métricas ficticias.
+ * Presentar las 6 soluciones/funciones principales de VEXTOR en tarjetas corporativas con 12-16px radius.
  */
 const solutions = [
   {
@@ -42,7 +30,7 @@ const solutions = [
   {
     title: "Programación de Rutas",
     problemSolved: "Despachos desorganizados, incumplimiento de horarios e itinerarios sin trazabilidad.",
-    benefit: "Monitoree y programe trayectos de origen a destino, asegurando el cumplimiento puntual de contratos empresariales y escolares.",
+    benefit: "Monitoree y programe trayectos de origen a destino, asegurando el cumplimiento puntual de itinerarios.",
     icon: Route
   },
   {
@@ -67,7 +55,7 @@ const solutions = [
 
 const FeaturesSection = () => {
   return (
-    <section id="funciones" className="py-20 lg:py-28 bg-v-dark-soft/50 border-y border-v-dark-border/60 transition-colors duration-300">
+    <section id="funciones" className="py-20 lg:py-28 bg-v-dark-soft/40 border-y border-v-dark-border/60 transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6">
 
         {/* ENCABEZADO */}
@@ -76,9 +64,9 @@ const FeaturesSection = () => {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-primary font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            className="text-[#124A2F] dark:text-[#A6C98F] font-semibold tracking-wider uppercase text-xs sm:text-sm mb-3"
           >
-            Soluciones Integrales
+            Funcionalidades de Plataforma
           </motion.div>
 
           <motion.h2
@@ -86,9 +74,9 @@ const FeaturesSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-6 tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight"
           >
-            Módulos diseñados para <span className="text-primary">resolver su operación.</span>
+            Módulos diseñados para <span className="text-[#124A2F] dark:text-[#A6C98F]">resolver su operación.</span>
           </motion.h2>
 
           <motion.p
@@ -96,13 +84,13 @@ const FeaturesSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-base sm:text-lg text-v-gray leading-relaxed"
+            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto"
           >
-            Más que una lista de características técnicas, VEXTOR proporciona herramientas estructuradas para generar valor y resultados tangibles en su empresa de transporte especial.
+            Herramientas estructuradas para generar valor, previsibilidad y eficiencia en el día a día de su empresa de transporte.
           </motion.p>
         </div>
 
-        {/* GRID DE 6 SOLUCIONES */}
+        {/* GRID DE 6 FUNCIONALIDADES (Cards 12-16px radius = rounded-2xl) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {solutions.map((item, index) => (
             <motion.div
@@ -111,14 +99,14 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.5 }}
-              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-primary/40 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between group"
+              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between group"
             >
               <div>
-                <div className="w-12 h-12 rounded-xl bg-v-dark-soft border border-v-dark-border text-v-white flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-v-dark-constant group-hover:border-primary transition-colors duration-300">
-                  <item.icon size={24} />
+                <div className="w-12 h-12 rounded-xl bg-v-dark-soft border border-v-dark-border text-v-white flex items-center justify-center mb-6 group-hover:bg-[#124A2F] group-hover:text-white group-hover:border-[#124A2F] transition-colors duration-300">
+                  <item.icon size={22} />
                 </div>
 
-                <h3 className="text-xl font-bold text-v-white mb-3 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-v-white mb-3 group-hover:text-[#124A2F] dark:group-hover:text-[#A6C98F] transition-colors">
                   {item.title}
                 </h3>
 
@@ -134,8 +122,8 @@ const FeaturesSection = () => {
               </div>
 
               {/* BENEFICIO DIRECTO */}
-              <div className="pt-4 border-t border-v-dark-border/80">
-                <span className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-1">
+              <div className="pt-4 border-t border-v-dark-border">
+                <span className="text-[10px] font-bold text-[#124A2F] dark:text-[#A6C98F] uppercase tracking-wider block mb-1">
                   Beneficio obtenido:
                 </span>
                 <p className="text-v-white text-xs font-medium leading-relaxed">

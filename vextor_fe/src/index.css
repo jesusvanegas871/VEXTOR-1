@@ -2,35 +2,52 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --v-bg: #f8fafc; /* slate-50 */
-  --v-bg-soft: #ffffff; /* pure white cards */
-  --v-border: #e2e8f0; /* slate-200 */
-  --v-text: #0f172a; /* slate-900 */
-  --v-gray: #64748b; /* slate-500 */
-  --v-gray-dark: #e2e8f0; /* slate-200 */
+  /* VEXTOR Official Palette */
+  --vextor-green-dark: #124A2F;
+  --vextor-green-deep: #0B3522;
+  --vextor-green-accent: #A6C98F;
+  --vextor-green-soft: #DDEBD5;
+  --vextor-bg-light: #F5F7F5;
+  --vextor-text-dark: #1E2822;
+  --vextor-text-muted: #647067;
+  --vextor-border: #E1E8E3;
 
-  /* Default theme color: emerald */
-  --primary-color: #10b981;
-  --primary-color-dark: #059669;
-  --primary-color-hover: #059669;
-  --primary-color-shadow: rgba(16, 185, 129, 0.3);
+  --v-bg: #F5F7F5; /* Soft light background for VEXTOR */
+  --v-bg-soft: #ffffff; /* pure white cards */
+  --v-border: #E1E8E3; /* subtle green-gray border */
+  --v-text: #1E2822; /* primary text dark */
+  --v-gray: #647067; /* secondary text muted */
+  --v-gray-dark: #E1E8E3;
+
+  /* Default brand color: VEXTOR Dark Green (#124A2F) */
+  --primary-color: #124A2F;
+  --primary-color-dark: #0B3522;
+  --primary-color-hover: #0B3522;
+  --primary-color-shadow: rgba(18, 74, 47, 0.2);
+  --accent-color: #A6C98F;
 }
 
 .dark {
-  --v-bg: #0f172a; /* slate-900 */
-  --v-bg-soft: #1e293b; /* slate-800 */
-  --v-border: #334155; /* slate-700 */
-  --v-text: #ffffff;
-  --v-gray: #94a3b8; /* slate-400 */
-  --v-gray-dark: #334155; /* slate-700 */
+  --v-bg: #0B1D14; /* Deep dark green background */
+  --v-bg-soft: #12291D; /* Dark green-gray card background */
+  --v-border: #1E3D2C; /* Dark green border */
+  --v-text: #F5F7F5; /* Off-white text */
+  --v-gray: #9BB0A3; /* Muted green-gray text */
+  --v-gray-dark: #1E3D2C;
+
+  --primary-color: #124A2F;
+  --primary-color-dark: #0B3522;
+  --primary-color-hover: #165738;
+  --primary-color-shadow: rgba(166, 201, 143, 0.25);
+  --accent-color: #A6C98F;
 }
 
 /* Dynamic theme classes for custom emphasis colors */
 .theme-emerald {
-  --primary-color: #10b981;
-  --primary-color-dark: #059669;
-  --primary-color-hover: #059669;
-  --primary-color-shadow: rgba(16, 185, 129, 0.3);
+  --primary-color: #124A2F;
+  --primary-color-dark: #0B3522;
+  --primary-color-hover: #0B3522;
+  --primary-color-shadow: rgba(18, 74, 47, 0.2);
 }
 
 .theme-blue {
@@ -58,11 +75,12 @@
   --color-primary: var(--primary-color);
   --color-primary-dark: var(--primary-color-dark);
   --color-primary-hover: var(--primary-color-hover);
+  --color-accent: var(--accent-color);
 
   --color-v-dark: var(--v-bg);
   --color-v-dark-soft: var(--v-bg-soft);
   --color-v-dark-border: var(--v-border);
-  --color-v-dark-constant: #0f172a;
+  --color-v-dark-constant: #124A2F;
 
   --color-v-light: var(--v-bg);
   --color-v-light-soft: var(--v-bg-soft);
