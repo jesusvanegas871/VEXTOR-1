@@ -41,11 +41,11 @@ const ContactSection = () => {
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-extrabold text-v-white mb-6 tracking-tight leading-tight">
-                Hablemos de tu <span className="text-primary">operación</span>
+                ¿Quiere conocer cómo VEXTOR puede <span className="text-primary">ayudar a su empresa?</span>
               </h2>
 
               <p className="text-base text-v-gray mb-8 leading-relaxed">
-                ¿Quieres conocer cómo VEXTOR puede ayudarte a optimizar la gestión, control e itinerarios de tu flota de transporte? Déjanos tus datos y nuestro equipo especialista se pondrá en contacto contigo a la brevedad.
+                Déjenos sus datos y conozca una nueva forma de gestionar su operación. Un especialista analizará la estructura de su flota y agendará una demostración personalizada sin ningún compromiso.
               </p>
 
               {/* PUNTOS CLAVE DE VALOR */}
@@ -109,7 +109,7 @@ const ContactSection = () => {
                 className="space-y-5"
               >
                 {/* Configuración especial FormSubmit */}
-                <input type="hidden" name="_subject" value="Nuevo contacto desde VEXTOR" />
+                <input type="hidden" name="_subject" value="Solicitud de Demostración - VEXTOR" />
                 <input type="hidden" name="_template" value="table" />
                 <input type="hidden" name="_captcha" value="false" />
 
@@ -118,7 +118,7 @@ const ContactSection = () => {
                   <div className="space-y-1.5">
                     <label htmlFor="contact-name" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                       <User size={14} className="text-primary" />
-                      Nombre <span className="text-primary">*</span>
+                      Nombre completo <span className="text-primary">*</span>
                     </label>
                     <input
                       id="contact-name"
@@ -133,24 +133,25 @@ const ContactSection = () => {
                   <div className="space-y-1.5">
                     <label htmlFor="contact-company" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                       <Building size={14} className="text-primary" />
-                      Empresa
+                      Empresa de transporte <span className="text-primary">*</span>
                     </label>
                     <input
                       id="contact-company"
                       type="text"
                       name="company"
-                      placeholder="Ej. Transporte VEXTOR S.A.S."
+                      required
+                      placeholder="Ej. Transporte Especial S.A.S."
                       className="w-full h-11 px-3.5 py-2 rounded-xl border border-v-dark-border bg-v-dark text-sm text-v-white placeholder:text-v-gray/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     />
                   </div>
                 </div>
 
-                {/* FILA 2: Correo Electrónico y Teléfono */}
+                {/* FILA 2: Correo Corporativo y Teléfono */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="contact-email" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                       <AtSign size={14} className="text-primary" />
-                      Correo electrónico <span className="text-primary">*</span>
+                      Correo corporativo <span className="text-primary">*</span>
                     </label>
                     <input
                       id="contact-email"
@@ -165,46 +166,51 @@ const ContactSection = () => {
                   <div className="space-y-1.5">
                     <label htmlFor="contact-phone" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                       <Phone size={14} className="text-primary" />
-                      Teléfono
+                      Teléfono / WhatsApp <span className="text-primary">*</span>
                     </label>
                     <input
                       id="contact-phone"
                       type="tel"
                       name="phone"
+                      required
                       placeholder="+57 300 123 4567"
                       className="w-full h-11 px-3.5 py-2 rounded-xl border border-v-dark-border bg-v-dark text-sm text-v-white placeholder:text-v-gray/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     />
                   </div>
                 </div>
 
-                {/* FILA 3: Asunto */}
+                {/* FILA 3: Cantidad de Vehículos */}
                 <div className="space-y-1.5">
-                  <label htmlFor="contact-subject" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
+                  <label htmlFor="contact-fleet-size" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                     <FileText size={14} className="text-primary" />
-                    Asunto <span className="text-primary">*</span>
+                    Cantidad aproximada de vehículos <span className="text-primary">*</span>
                   </label>
-                  <input
-                    id="contact-subject"
-                    type="text"
-                    name="subject"
+                  <select
+                    id="contact-fleet-size"
+                    name="fleet_size"
                     required
-                    placeholder="Ej. Solicitud de cotización para flota"
-                    className="w-full h-11 px-3.5 py-2 rounded-xl border border-v-dark-border bg-v-dark text-sm text-v-white placeholder:text-v-gray/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                  />
+                    className="w-full h-11 px-3.5 py-2 rounded-xl border border-v-dark-border bg-v-dark text-sm text-v-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                  >
+                    <option value="" disabled selected>Seleccione el rango de su flota...</option>
+                    <option value="1 a 5 vehiculos">1 a 5 vehículos</option>
+                    <option value="6 a 20 vehiculos">6 a 20 vehículos</option>
+                    <option value="21 a 50 vehiculos">21 a 50 vehículos</option>
+                    <option value="Mas de 50 vehiculos">Más de 50 vehículos</option>
+                  </select>
                 </div>
 
                 {/* FILA 4: Mensaje */}
                 <div className="space-y-1.5">
                   <label htmlFor="contact-message" className="text-sm font-medium text-v-gray flex items-center gap-1.5">
                     <MessageSquare size={14} className="text-primary" />
-                    Mensaje <span className="text-primary">*</span>
+                    ¿Qué requerimiento o duda desea resolver? <span className="text-primary">*</span>
                   </label>
                   <textarea
                     id="contact-message"
                     name="message"
                     required
-                    rows={4}
-                    placeholder="Cuéntanos cuántos vehículos integran tu flota o qué necesidades operativas deseas solucionar..."
+                    rows={3}
+                    placeholder="Cuéntenos sobre su operación de transporte o los objetivos que desea alcanzar con VEXTOR..."
                     className="w-full px-3.5 py-3 rounded-xl border border-v-dark-border bg-v-dark text-sm text-v-white placeholder:text-v-gray/60 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none"
                   />
                 </div>
@@ -215,7 +221,7 @@ const ContactSection = () => {
                     type="submit"
                     className="w-full text-base font-bold h-12 rounded-xl shadow-md group justify-center"
                   >
-                    <span>Enviar mensaje</span>
+                    <span>Solicitar Demostración</span>
                     <Send className="ml-2 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform" />
                   </Button>
                 </div>

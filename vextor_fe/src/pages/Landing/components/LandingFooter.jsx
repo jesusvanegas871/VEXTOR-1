@@ -37,13 +37,23 @@ const LandingFooter = () => {
                 </a>
               </li>
               <li>
+                <a href="#producto" className="text-v-gray hover:text-primary transition-colors">
+                  Producto
+                </a>
+              </li>
+              <li>
                 <a href="#funciones" className="text-v-gray hover:text-primary transition-colors">
-                  Funciones
+                  Soluciones
                 </a>
               </li>
               <li>
                 <a href="#beneficios" className="text-v-gray hover:text-primary transition-colors">
                   Beneficios
+                </a>
+              </li>
+              <li>
+                <a href="#por-que-vextor" className="text-v-gray hover:text-primary transition-colors">
+                  ¿Por qué VEXTOR?
                 </a>
               </li>
               <li>

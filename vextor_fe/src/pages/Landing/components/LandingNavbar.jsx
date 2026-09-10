@@ -33,8 +33,10 @@ const LandingNavbar = () => {
 
   const navLinks = [
     { name: 'Inicio', href: '#inicio' },
-    { name: 'Funciones', href: '#funciones' },
+    { name: 'Producto', href: '#producto' },
+    { name: 'Soluciones', href: '#funciones' },
     { name: 'Beneficios', href: '#beneficios' },
+    { name: '¿Por qué VEXTOR?', href: '#por-que-vextor' },
     { name: 'Contacto', href: '#contacto' },
   ];
 
@@ -65,19 +67,19 @@ const LandingNavbar = () => {
           ))}
         </nav>
 
-        {/* DERECHA: Acciones (ThemeToggle, Login, Register) */}
+        {/* DERECHA: Acciones (ThemeToggle, Login, Demostración) */}
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
           <Link to="/login">
-            <Button variant="ghost" className="text-sm font-semibold text-v-white hover:text-primary px-4">
+            <Button variant="ghost" className="text-sm font-semibold text-v-white hover:text-primary px-3">
               Iniciar Sesión
             </Button>
           </Link>
-          <Link to="/register">
-            <Button variant="primary" className="text-sm font-bold shadow-sm px-5">
-              Crear Cuenta
+          <a href="#contacto">
+            <Button variant="primary" className="text-sm font-bold shadow-sm px-4">
+              Solicitar demostración
             </Button>
-          </Link>
+          </a>
         </div>
 
         {/* Menú Móvil & Theme Toggle */}
@@ -115,14 +117,14 @@ const LandingNavbar = () => {
               ))}
               <hr className="border-v-dark-border my-2" />
               <div className="flex flex-col gap-3">
+                <a href="#contacto" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="primary" className="w-full justify-center font-bold">
+                    Solicitar demostración
+                  </Button>
+                </a>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full justify-center">
                     Iniciar Sesión
-                  </Button>
-                </Link>
-                <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="primary" className="w-full justify-center font-bold">
-                    Crear Cuenta
                   </Button>
                 </Link>
               </div>
