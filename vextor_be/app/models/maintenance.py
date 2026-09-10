@@ -1,7 +1,7 @@
 """Modelos de Mantenimiento"""
 import uuid
 from datetime import date
-from sqlalchemy import Column, String, Text, Date, Numeric, ForeignKey, CheckConstraint
+from sqlalchemy import Column, String, Text, Date, Numeric, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
