@@ -55,12 +55,12 @@ const BenefitsSection = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
         {/* ENCABEZADO */}
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-3xl mb-14 lg:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-[#124A2F] dark:text-[#A6C98F] font-semibold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            className="text-[#124A2F] dark:text-[#A6C98F] font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
           >
             Resultados Tangibles
           </motion.div>
@@ -69,7 +69,7 @@ const BenefitsSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 leading-tight tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 leading-[1.18] tracking-tight"
           >
             Más control. <span className="text-[#124A2F] dark:text-[#A6C98F]">Menos imprevistos.</span>
           </motion.h2>
@@ -85,7 +85,7 @@ const BenefitsSection = () => {
           </motion.p>
         </div>
 
-        {/* GRID DE TRES PILARES (Cards de 12-16px radius = rounded-2xl) */}
+        {/* GRID DE TRES PILARES */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {pillars.map((pillar, index) => {
             const Icon = pillar.icon;
@@ -96,14 +96,14 @@ const BenefitsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 flex flex-col justify-between shadow-xs hover:shadow-md group"
+                className="p-6 sm:p-8 rounded-2xl bg-v-dark-soft border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-xs hover:shadow-md group"
               >
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-[10px] font-bold uppercase tracking-wider mb-6">
                     {pillar.badge}
                   </div>
 
-                  <div className="w-12 h-12 rounded-xl bg-v-dark border border-v-dark-border text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center mb-6 group-hover:bg-[#124A2F] group-hover:text-white dark:group-hover:bg-[#124A2F] dark:group-hover:text-white transition-colors duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-v-dark border border-v-dark-border text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center mb-6 group-hover:bg-[#124A2F] group-hover:text-white dark:group-hover:bg-[#124A2F] dark:group-hover:text-white transition-colors duration-300 shadow-2xs">
                     <Icon size={22} />
                   </div>
 
@@ -111,16 +111,18 @@ const BenefitsSection = () => {
                     {pillar.headline}
                   </h3>
 
-                  <p className="text-v-gray text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-v-gray text-xs sm:text-sm leading-relaxed mb-6 font-normal">
                     {pillar.description}
                   </p>
                 </div>
 
                 <div className="pt-5 border-t border-v-dark-border space-y-2.5">
                   {pillar.highlights.map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs font-semibold text-v-white/90">
-                      <Check className="text-[#124A2F] dark:text-[#A6C98F] w-4 h-4 shrink-0 mt-0.5" />
-                      <span>{item}</span>
+                    <div key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-v-white/90">
+                      <div className="w-4 h-4 rounded-full bg-[#124A2F]/15 dark:bg-[#A6C98F]/15 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                      <span className="leading-tight">{item}</span>
                     </div>
                   ))}
                 </div>

@@ -55,16 +55,16 @@ const solutions = [
 
 const FeaturesSection = () => {
   return (
-    <section id="funciones" className="py-20 lg:py-28 bg-v-dark-soft/40 border-y border-v-dark-border/60 transition-colors duration-300">
+    <section id="funciones" className="py-20 lg:py-28 bg-v-dark-soft/40 border-y border-v-dark-border/70 transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6">
 
         {/* ENCABEZADO */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-14 lg:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-[#124A2F] dark:text-[#A6C98F] font-semibold tracking-wider uppercase text-xs sm:text-sm mb-3"
+            className="text-[#124A2F] dark:text-[#A6C98F] font-bold tracking-wider uppercase text-xs sm:text-sm mb-3"
           >
             Funcionalidades de Plataforma
           </motion.div>
@@ -74,7 +74,7 @@ const FeaturesSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-[1.18]"
           >
             Módulos diseñados para <span className="text-[#124A2F] dark:text-[#A6C98F]">resolver su operación.</span>
           </motion.h2>
@@ -84,13 +84,13 @@ const FeaturesSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto"
+            className="text-base sm:text-lg text-v-gray leading-relaxed max-w-2xl mx-auto font-normal"
           >
             Herramientas estructuradas para generar valor, previsibilidad y eficiencia en el día a día de su empresa de transporte.
           </motion.p>
         </div>
 
-        {/* GRID DE 6 FUNCIONALIDADES (Cards 12-16px radius = rounded-2xl) */}
+        {/* GRID DE 6 FUNCIONALIDADES */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {solutions.map((item, index) => (
             <motion.div
@@ -99,10 +99,10 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.5 }}
-              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/30 dark:hover:border-[#A6C98F]/30 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between group"
+              className="p-6 sm:p-8 rounded-2xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 hover:-translate-y-1 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between group"
             >
               <div>
-                <div className="w-12 h-12 rounded-xl bg-v-dark-soft border border-v-dark-border text-v-white flex items-center justify-center mb-6 group-hover:bg-[#124A2F] group-hover:text-white group-hover:border-[#124A2F] transition-colors duration-300">
+                <div className="w-12 h-12 rounded-xl bg-v-dark-soft border border-v-dark-border text-v-white flex items-center justify-center mb-6 group-hover:bg-[#124A2F] group-hover:text-white group-hover:border-[#124A2F] transition-colors duration-300 shadow-2xs">
                   <item.icon size={22} />
                 </div>
 
@@ -115,7 +115,7 @@ const FeaturesSection = () => {
                   <span className="text-[10px] font-bold text-v-gray uppercase tracking-wider block mb-1">
                     ¿Qué problema resuelve?
                   </span>
-                  <p className="text-v-gray text-xs leading-relaxed">
+                  <p className="text-v-gray text-xs leading-relaxed font-normal">
                     {item.problemSolved}
                   </p>
                 </div>
@@ -126,7 +126,7 @@ const FeaturesSection = () => {
                 <span className="text-[10px] font-bold text-[#124A2F] dark:text-[#A6C98F] uppercase tracking-wider block mb-1">
                   Beneficio obtenido:
                 </span>
-                <p className="text-v-white text-xs font-medium leading-relaxed">
+                <p className="text-v-white text-xs font-semibold leading-relaxed">
                   {item.benefit}
                 </p>
               </div>

@@ -10,15 +10,7 @@ import { ThemeToggle } from '../../../components/ui/ThemeToggle';
  * LandingNavbar Component
  *
  * Responsabilidad:
- * Barra de navegación superior limpia y corporativa para la Landing Page de VEXTOR.
- *
- * Funcionalidades:
- * * Logo VEXTOR oficial.
- * * Enlaces navegables: Inicio, Funciones, Beneficios, Contacto.
- * * Selector de tema (Dark/Light).
- * * Enlace "Iniciar Sesión" (Botón secundario / ghost).
- * * CTA principal "Crear Cuenta" (Botón principal verde oscuro VEXTOR).
- * * Menú hamburguesa responsive para dispositivos móviles.
+ * Barra de navegación superior limpia, moderna y corporativa para la Landing Page de VEXTOR.
  */
 const LandingNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -44,7 +36,7 @@ const LandingNavbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
         isScrolled
           ? 'bg-v-dark-soft/95 backdrop-blur-md border-b border-v-dark-border shadow-xs'
-          : 'bg-v-dark-soft/80 backdrop-blur-xs border-b border-v-dark-border/50'
+          : 'bg-v-dark-soft/80 backdrop-blur-sm border-b border-v-dark-border/60'
       }`}
     >
       <div className="container mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
@@ -54,12 +46,12 @@ const LandingNavbar = () => {
         </Link>
 
         {/* CENTRO: Links de navegación */}
-        <nav className="hidden md:flex items-center gap-7">
+        <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-v-white/80 hover:text-primary transition-colors duration-200"
+              className="text-sm font-medium text-v-white/85 hover:text-[#124A2F] dark:hover:text-[#A6C98F] transition-colors duration-200"
             >
               {link.name}
             </a>
@@ -70,12 +62,12 @@ const LandingNavbar = () => {
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
           <Link to="/login">
-            <Button variant="ghost" className="text-sm font-semibold px-3">
+            <Button variant="ghost" className="text-sm font-semibold px-3.5">
               Iniciar Sesión
             </Button>
           </Link>
           <Link to="/register">
-            <Button variant="primary" className="text-sm font-semibold px-4 rounded-lg">
+            <Button variant="primary" className="text-sm font-semibold px-4.5 rounded-lg shadow-xs">
               Crear Cuenta
             </Button>
           </Link>
@@ -86,7 +78,7 @@ const LandingNavbar = () => {
           <ThemeToggle />
           <button
             aria-label="Toggle Navigation Menu"
-            className="text-v-white p-2 rounded-lg hover:bg-v-dark-soft transition-colors"
+            className="text-v-white p-2 rounded-lg hover:bg-v-dark transition-colors cursor-pointer"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -101,14 +93,14 @@ const LandingNavbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-v-dark-soft border-b border-v-dark-border overflow-hidden shadow-lg"
+            className="md:hidden bg-v-dark-soft border-b border-v-dark-border overflow-hidden shadow-xl"
           >
             <div className="flex flex-col p-5 gap-3.5">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
-                  className="text-sm font-semibold text-v-white hover:text-primary transition-colors py-1"
+                  className="text-sm font-semibold text-v-white hover:text-[#124A2F] dark:hover:text-[#A6C98F] transition-colors py-1"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}

@@ -50,7 +50,7 @@ const ProductPreviewSection = () => {
   return (
     <section id="producto" className="py-20 lg:py-28 bg-v-dark border-y border-v-dark-border relative overflow-hidden transition-colors duration-300">
       {/* Background glow effect sutil */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#124A2F]/5 dark:bg-[#A6C98F]/5 blur-3xl rounded-full pointer-events-none -z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[640px] bg-[#124A2F]/8 dark:bg-[#A6C98F]/8 blur-3xl rounded-full pointer-events-none -z-0" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
@@ -60,7 +60,7 @@ const ProductPreviewSection = () => {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-bold uppercase tracking-wider mb-4"
           >
             <ShieldCheck size={16} />
             Demostración de Plataforma
@@ -70,7 +70,7 @@ const ProductPreviewSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-v-white mb-5 tracking-tight leading-[1.18]"
           >
             Todo el control de su operación, <br className="hidden sm:inline" />
             en <span className="text-[#124A2F] dark:text-[#A6C98F]">una sola plataforma.</span>
@@ -87,7 +87,7 @@ const ProductPreviewSection = () => {
           </motion.p>
         </div>
 
-        {/* TAB SELECTOR / PESTAÑAS (Radius 8-10px) */}
+        {/* TAB SELECTOR / PESTAÑAS */}
         <div className="flex items-center justify-start lg:justify-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -98,14 +98,14 @@ const ProductPreviewSection = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? 'bg-[#124A2F] text-white shadow-xs'
+                    ? 'bg-[#124A2F] text-white shadow-sm'
                     : 'bg-v-dark-soft border border-v-dark-border text-v-gray hover:text-v-white hover:border-[#124A2F]/40'
                 }`}
               >
                 <Icon size={17} className={isActive ? 'text-white' : 'text-[#124A2F] dark:text-[#A6C98F]'} />
                 <span>{tab.name}</span>
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                  className={`text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider font-bold ${
                     isActive ? 'bg-white/20 text-white' : 'bg-v-dark text-v-gray'
                   }`}
                 >
@@ -116,7 +116,7 @@ const ProductPreviewSection = () => {
           })}
         </div>
 
-        {/* CONTAINER MOCKUP DEL DASHBOARD (Card de 12-16px radius = rounded-2xl) */}
+        {/* CONTAINER MOCKUP DEL DASHBOARD */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -137,7 +137,7 @@ const ProductPreviewSection = () => {
             </div>
 
             <div className="flex items-center gap-3 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#124A2F]/10 text-[#124A2F] dark:text-[#A6C98F] font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F] font-bold border border-[#124A2F]/20 dark:border-[#A6C98F]/20">
                 <span className="w-2 h-2 rounded-full bg-[#124A2F] dark:bg-[#A6C98F] animate-pulse" />
                 Sistema Operativo VEXTOR activo
               </span>
@@ -169,7 +169,7 @@ const ProductPreviewSection = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {mockVehiclesData.items.map((veh) => (
-                      <div key={veh.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 transition-colors">
+                      <div key={veh.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border hover:border-[#124A2F]/40 dark:hover:border-[#A6C98F]/40 transition-colors shadow-2xs">
                         <div className="flex items-center justify-between mb-3">
                           <span className="font-mono text-xs font-bold text-v-white bg-v-dark-soft px-2.5 py-1 rounded border border-v-dark-border">
                             {veh.code} ({veh.plate})
@@ -240,7 +240,7 @@ const ProductPreviewSection = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {mockDriversData.items.map((drv) => (
-                      <div key={drv.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex items-center justify-between">
+                      <div key={drv.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex items-center justify-between shadow-2xs">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center font-bold text-xs">
                             {drv.initials}
@@ -283,9 +283,9 @@ const ProductPreviewSection = () => {
 
                   <div className="space-y-3">
                     {mockRoutesData.items.map((rt) => (
-                      <div key={rt.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div key={rt.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F]">
+                          <div className="p-2 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 text-[#124A2F] dark:text-[#A6C98F] border border-[#124A2F]/20">
                             <MapPin size={18} />
                           </div>
                           <div>
@@ -296,7 +296,7 @@ const ProductPreviewSection = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-xs">
-                          <span className="text-v-gray flex items-center gap-1"><Clock size={14}/> {rt.schedule}</span>
+                          <span className="text-v-gray flex items-center gap-1 font-medium"><Clock size={14}/> {rt.schedule}</span>
                           <span
                             className={`px-2.5 py-1 rounded-full font-semibold ${
                               rt.statusType === 'success'
@@ -335,7 +335,7 @@ const ProductPreviewSection = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {mockMaintenanceData.items.map((maint) => (
-                      <div key={maint.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border space-y-2">
+                      <div key={maint.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border space-y-2 shadow-2xs">
                         <div className="flex items-center justify-between">
                           <span
                             className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${
@@ -379,7 +379,7 @@ const ProductPreviewSection = () => {
                     {mockAlertsData.items.map((alt) => (
                       <div
                         key={alt.id}
-                        className={`p-4 rounded-xl flex items-start gap-3 border ${
+                        className={`p-4 rounded-xl flex items-start gap-3 border shadow-2xs ${
                           alt.type === 'warning'
                             ? 'bg-amber-500/10 border-amber-500/30'
                             : 'bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border-[#124A2F]/20 dark:border-[#A6C98F]/20'
@@ -422,7 +422,7 @@ const ProductPreviewSection = () => {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {mockReportsData.kpis.map((kpi) => (
-                      <div key={kpi.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border text-center">
+                      <div key={kpi.id} className="p-4 rounded-xl bg-v-dark border border-v-dark-border text-center shadow-2xs">
                         <span className="text-xs text-v-gray font-medium">{kpi.label}</span>
                         <p className="text-2xl font-extrabold mt-1 text-[#124A2F] dark:text-[#A6C98F]">
                           {kpi.value}
@@ -441,7 +441,7 @@ const ProductPreviewSection = () => {
                 ¿Desea ver cómo funcionaría VEXTOR adaptado a la cantidad de vehículos de su empresa?
               </span>
               <a href="#contacto" className="shrink-0 w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-[#124A2F] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-lg hover:bg-[#0B3522] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                <button className="w-full sm:w-auto bg-[#124A2F] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-lg hover:bg-[#0B3522] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow-md">
                   <span>Solicitar demostración</span>
                   <ChevronRight size={16} />
                 </button>

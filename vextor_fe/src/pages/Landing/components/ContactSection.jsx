@@ -18,7 +18,7 @@ const ContactSection = () => {
   return (
     <section id="contacto" className="scroll-mt-20 py-20 lg:py-28 bg-v-dark-soft/40 border-b border-v-dark-border transition-colors duration-300 relative overflow-hidden">
       {/* Background glow sutil */}
-      <div className="absolute top-1/3 left-0 w-80 h-80 bg-[#124A2F]/5 dark:bg-[#A6C98F]/5 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute top-1/3 left-0 w-80 h-80 bg-[#124A2F]/8 dark:bg-[#A6C98F]/8 blur-3xl rounded-full pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start max-w-6xl mx-auto">
@@ -32,12 +32,12 @@ const ContactSection = () => {
             className="lg:col-span-5 flex flex-col justify-between h-full"
           >
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 dark:border-[#A6C98F]/20 text-[#124A2F] dark:text-[#A6C98F] text-xs font-bold uppercase tracking-wider mb-5">
                 <MessageSquare size={15} />
                 Atención Personalizada
               </div>
 
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-v-white mb-5 tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-v-white mb-5 tracking-tight leading-[1.18]">
                 ¿Quiere conocer cómo VEXTOR puede <span className="text-[#124A2F] dark:text-[#A6C98F]">ayudar a su empresa?</span>
               </h2>
 
@@ -48,22 +48,22 @@ const ContactSection = () => {
               {/* PUNTOS CLAVE DE VALOR */}
               <div className="space-y-4 mb-8">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                     <Headphones size={16} />
                   </div>
                   <div>
                     <h4 className="text-v-white font-bold text-sm">Asesoría Especializada</h4>
-                    <p className="text-v-gray text-xs leading-relaxed">Acompañamiento en la digitalización de su operación.</p>
+                    <p className="text-v-gray text-xs leading-relaxed font-normal">Acompañamiento en la digitalización de su operación.</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#124A2F]/10 dark:bg-[#A6C98F]/10 border border-[#124A2F]/20 text-[#124A2F] dark:text-[#A6C98F] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                     <ShieldCheck size={16} />
                   </div>
                   <div>
                     <h4 className="text-v-white font-bold text-sm">Demostración en Vivo</h4>
-                    <p className="text-v-gray text-xs leading-relaxed">Presentación guiada de los módulos de la plataforma.</p>
+                    <p className="text-v-gray text-xs leading-relaxed font-normal">Presentación guiada de los módulos de la plataforma.</p>
                   </div>
                 </div>
               </div>
@@ -71,22 +71,22 @@ const ContactSection = () => {
 
             {/* DATOS DE CONTACTO DIRECTO */}
             <div className="pt-6 border-t border-v-dark-border space-y-3">
-              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm">
+              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm font-medium">
                 <Mail className="w-4 h-4 text-[#124A2F] dark:text-[#A6C98F] shrink-0" />
                 <span>contacto@vextor.com</span>
               </div>
-              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm">
+              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm font-medium">
                 <Phone className="w-4 h-4 text-[#124A2F] dark:text-[#A6C98F] shrink-0" />
                 <span>+57 (601) 123-4567</span>
               </div>
-              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm">
+              <div className="flex items-center gap-3 text-v-gray text-xs sm:text-sm font-medium">
                 <MapPin className="w-4 h-4 text-[#124A2F] dark:text-[#A6C98F] shrink-0" />
                 <span>Bogotá, Colombia</span>
               </div>
             </div>
           </motion.div>
 
-          {/* COLUMNA DERECHA: TARJETA CON FORMULARIO FORMSUBMIT (Radius 12-16px = rounded-2xl) */}
+          {/* COLUMNA DERECHA: TARJETA CON FORMULARIO FORMSUBMIT */}
           <motion.div
             initial={{ opacity: 0, x: 25 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -97,7 +97,7 @@ const ContactSection = () => {
             <div className="bg-v-dark border border-v-dark-border rounded-2xl p-6 sm:p-8 shadow-md relative overflow-hidden">
               <div className="mb-6">
                 <h3 className="text-xl sm:text-2xl font-bold text-v-white mb-1.5">Solicitar Demostración</h3>
-                <p className="text-xs sm:text-sm text-v-gray">Complete el formulario y nos comunicaremos en menos de 24 horas.</p>
+                <p className="text-xs sm:text-sm text-v-gray font-normal">Complete el formulario y nos comunicaremos en menos de 24 horas.</p>
               </div>
 
               <form
