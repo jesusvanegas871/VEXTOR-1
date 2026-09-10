@@ -1,8 +1,11 @@
 import LandingNavbar from './components/LandingNavbar';
 import HeroSection from './components/HeroSection';
+import ProductPreviewSection from './components/ProductPreviewSection';
 import ProblemSection from './components/ProblemSection';
 import FeaturesSection from './components/FeaturesSection';
-import CTASection from './components/CTASection';
+import BenefitsSection from './components/BenefitsSection';
+import WhyVextorSection from './components/WhyVextorSection';
+import IntermediateCTA from './components/IntermediateCTA';
 import ContactSection from './components/ContactSection';
 import LandingFooter from './components/LandingFooter';
 
@@ -10,16 +13,19 @@ import LandingFooter from './components/LandingFooter';
  * Landing Page
  *
  * Responsabilidad:
- * Página web de marketing (pública) para la conversión de empresas de transporte especial.
+ * Página comercial (pública) B2B para la conversión de empresas de transporte especial.
  *
  * Estructura:
- * * LandingNavbar: Navegación global (#inicio, #funciones, #beneficios, #contacto).
- * * HeroSection: Propuesta de valor principal con imágenes transparentes de vehículos.
- * * ProblemSection: Agitación de puntos de dolor operativos y posicionamiento VEXTOR.
- * * FeaturesSection: 6 funciones clave (#funciones) y beneficios reales (#beneficios).
- * * CTASection: Llamada a la acción final hacia /register.
- * * ContactSection: Formulario de contacto funcional (#contacto) con FormSubmit.
- * * LandingFooter: Información corporativa y enlaces de navegación.
+ * * LandingNavbar: Navegación fija con accesos suaves (#inicio, #producto, #funciones, #beneficios, #por-que-vextor, #contacto).
+ * * HeroSection: Mapa de Bogotá + Vehículos (/Cars/vehiculos-hero.png) + Headline B2B comercial + CTAs.
+ * * ProductPreviewSection: Demostrador visual interactivo del producto (#producto).
+ * * ProblemSection: Agitación de retos en transporte especial (Problema → Consecuencia → Solución).
+ * * FeaturesSection: Módulos como soluciones de negocio (#funciones).
+ * * BenefitsSection: Resultados y pilares de valor "Más control. Menos imprevistos." (#beneficios).
+ * * WhyVextorSection: Propuesta diferenciadora B2B para transporte especial (#por-que-vextor).
+ * * IntermediateCTA: Llamado a la acción estratégico para solicitar demostración.
+ * * ContactSection: Formulario de generación de leads (#contacto) con FormSubmit.
+ * * LandingFooter: Pie de página oficial y enlaces globales.
  */
 const Landing = () => {
   return (
@@ -28,9 +34,12 @@ const Landing = () => {
 
       <main>
         <HeroSection />
+        <ProductPreviewSection />
         <ProblemSection />
         <FeaturesSection />
-        <CTASection />
+        <BenefitsSection />
+        <WhyVextorSection />
+        <IntermediateCTA />
         <ContactSection />
       </main>
 

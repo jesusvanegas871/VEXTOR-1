@@ -77,18 +77,18 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-v-dark/80 via-transparent to-v-dark" />
       </div>
 
-      {/* VEHÍCULOS SUPERPUESTOS Y FLOTANTES SOBRE EL MAPA */}
-      <div className="absolute inset-y-0 right-0 z-[5] w-1/2 sm:w-1/2 lg:w-1/2 flex items-center justify-end pointer-events-none overflow-hidden pr-2 sm:pr-4 lg:pr-8">
+      {/* VEHÍCULOS SUPERPUESTOS Y FLOTANTES SOBRE EL MAPA (DESKTOP / TABLET) */}
+      <div className="hidden sm:flex absolute inset-y-0 right-0 z-[5] w-7/12 lg:w-1/2 items-center justify-end pointer-events-none overflow-hidden pr-2 sm:pr-4 lg:pr-8">
         <motion.div
           initial={{ opacity: 0, x: 40, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
-          className="relative max-w-[160px] sm:max-w-[280px] md:max-w-[360px] lg:max-w-[560px] xl:max-w-[660px] opacity-30 sm:opacity-50 lg:opacity-100"
+          className="relative max-w-[380px] md:max-w-[460px] lg:max-w-[580px] xl:max-w-[660px] opacity-85 lg:opacity-100"
         >
           <img
             src="/Cars/vehiculos-hero.png"
-            alt="Flota de vehículos VEXTOR"
-            className="w-full h-auto object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.45)] dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.65)]"
+            alt="Flota de transporte especial VEXTOR"
+            className="w-full h-auto object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.7)]"
           />
         </motion.div>
       </div>
@@ -108,7 +108,7 @@ const HeroSection = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            NUEVA ERA EN GESTIÓN DE FLOTAS
+            SOFTWARE B2B PARA TRANSPORTE ESPECIAL
           </motion.div>
 
           {/* TITULAR PRINCIPAL */}
@@ -118,9 +118,9 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-v-white leading-[1.12] tracking-tight mb-6"
           >
-            Gestione toda su <br className="hidden sm:inline" />
-            flota desde una <br className="hidden sm:inline" />
-            <span className="text-primary">sola plataforma.</span>
+            Controle toda su <br className="hidden sm:inline" />
+            operación de transporte <br className="hidden sm:inline" />
+            desde <span className="text-primary">un solo lugar.</span>
           </motion.h1>
 
           {/* DESCRIPCIÓN */}
@@ -130,7 +130,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-base sm:text-lg text-v-gray mb-8 max-w-xl leading-relaxed font-normal"
           >
-            Controle vehículos, conductores, rutas y mantenimientos con una solución moderna diseñada para empresas de transporte especial.
+            VEXTOR centraliza vehículos, conductores, rutas, mantenimientos y alertas en tiempo real. La plataforma B2B SaaS diseñada para que las empresas de transporte especial mantengan el control total de su flota.
           </motion.p>
 
           {/* BOTONES DE ACCIÓN */}
@@ -140,24 +140,57 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
           >
-            <Link to="/register" className="w-full sm:w-auto">
+            <a href="#contacto" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto text-base font-bold h-13 px-8 rounded-xl shadow-md group">
-                Comenzar Gratis
+                Solicitar una demostración
                 <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </Link>
+            </a>
 
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={() => setIsDemoModalOpen(true)}
-              className="w-full sm:w-auto h-13 px-6 text-v-white hover:text-primary gap-3 rounded-xl border border-v-dark-border/60 hover:border-primary/30 bg-v-dark-soft/40 backdrop-blur-xs"
-            >
-              <div className="w-7 h-7 rounded-full bg-v-gray/20 flex items-center justify-center shrink-0">
-                <Play className="fill-current w-3.5 h-3.5 ml-0.5 text-v-white" />
-              </div>
-              <span className="font-semibold text-base">Ver Demo</span>
-            </Button>
+            <a href="#producto" className="w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full sm:w-auto h-13 px-6 text-v-white hover:text-primary gap-3 rounded-xl border border-v-dark-border/60 hover:border-primary/30 bg-v-dark-soft/40 backdrop-blur-xs"
+              >
+                <span className="font-semibold text-base">Conocer VEXTOR</span>
+              </Button>
+            </a>
+          </motion.div>
+
+          {/* VEHÍCULOS SUPERPUESTOS EN MOBILE (debajo de los botones) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="sm:hidden my-6 flex justify-center"
+          >
+            <img
+              src="/Cars/vehiculos-hero.png"
+              alt="Flota de transporte especial VEXTOR"
+              className="w-full max-w-[320px] h-auto object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+            />
+          </motion.div>
+
+          {/* PUNTOS DESTACADOS DEL HERO */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="mt-6 sm:mt-10 pt-6 border-t border-v-dark-border/40 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-v-gray font-medium"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+              <span>Visibilidad total en tiempo real</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+              <span>Prevención de vencimientos</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+              <span>100% Digital en la nube</span>
+            </div>
           </motion.div>
 
         </div>
